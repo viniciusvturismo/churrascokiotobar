@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Churrasco KiotoBar — Controle de Presença</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #F3F6F9;
+    --surface: #FFFFFF;
+    --surface-2: #E9EFF4;
+    --ink: #15263A;
+    --ink-soft: #4F6377;
+    --ink-faint: #8598AA;
+    --line: #DCE4EC;
+    --line-strong: #C2CFDB;
+    --accent: #D6362B;
+    --accent-ink: #FFF6F4;
+    --accent-tint: #FBE0DD;
+    --accent-tint-strong: #F0BAB4;
+    --secondary: #1B3A5C;
+    --secondary-tint: #DCE4EC;
+    --good: #2F7A52;
+    --good-tint: #DEEDE3;
+    --warn: #A6740C;
+    --warn-tint: #F4E7C4;
+    --neutral: #64788B;
+    --neutral-tint: #E6ECF1;
+    --shadow: rgba(21, 38, 58, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1D2C;
+      --surface: #16283C;
+      --surface-2: #1E3349;
+      --ink: #EAF1F7;
+      --ink-soft: #A9BDCF;
+      --ink-faint: #718AA0;
+      --line: #2A4258;
+      --line-strong: #35516A;
+      --accent: #F2604C;
+      --accent-ink: #2B0B06;
+      --accent-tint: #3B1B15;
+      --accent-tint-strong: #4E241B;
+      --secondary: #7FA6D6;
+      --secondary-tint: #1E3349;
+      --good: #7BC091;
+      --good-tint: #1C3327;
+      --warn: #E0B559;
+      --warn-tint: #3A2D12;
+      --neutral: #92A5B7;
+      --neutral-tint: #223850;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1D2C;
+    --surface: #16283C;
+    --surface-2: #1E3349;
+    --ink: #EAF1F7;
+    --ink-soft: #A9BDCF;
+    --ink-faint: #718AA0;
+    --line: #2A4258;
+    --line-strong: #35516A;
+    --accent: #F2604C;
+    --accent-ink: #2B0B06;
+    --accent-tint: #3B1B15;
+    --accent-tint-strong: #4E241B;
+    --secondary: #7FA6D6;
+    --secondary-tint: #1E3349;
+    --good: #7BC091;
+    --good-tint: #1C3327;
+    --warn: #E0B559;
+    --warn-tint: #3A2D12;
+    --neutral: #92A5B7;
+    --neutral-tint: #223850;
+    --shadow: rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Karla', ui-sans-serif, system-ui, sans-serif;
+    padding: 0 20px 64px;
+    line-height: 1.5;
+  }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; text-wrap: balance; margin: 0; }
+
+  .hero { padding-top: 40px; display: flex; flex-direction: column; gap: 10px; }
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .brand-logo { width: 64px; height: 64px; border-radius: 50%; display: block; box-shadow: 0 1px 3px var(--shadow); }
+  .eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; color: var(--accent); }
+  .hero h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; color: var(--ink); }
+  .hero .meta { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .hero .meta .dot { color: var(--line-strong); }
+  .hero p.lede { max-width: 62ch; color: var(--ink-soft); font-size: 15.5px; margin-top: 4px; }
+
+  .rsvp-card { margin-top: 26px; padding: 24px 26px; background: linear-gradient(155deg, var(--accent-tint), var(--surface) 65%); border: 1px solid var(--accent-tint-strong); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); }
+  .rsvp-card h2 { font-size: 21px; font-weight: 600; }
+  .rsvp-card .sub { font-size: 13.5px; color: var(--ink-soft); margin-top: 4px; max-width: 56ch; }
+  .rsvp-open { margin-top: 10px; font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--ink-soft); }
+  .rsvp-open b { color: var(--secondary); }
+  .rsvp-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 16px; }
+  .rsvp-field { display: flex; flex-direction: column; gap: 5px; }
+  .rsvp-field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .rsvp-field input { font-family: inherit; font-size: 14.5px; padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); }
+  .rsvp-field input:focus { outline: none; border-color: var(--accent); }
+  #rsvpName { min-width: 220px; flex: 1 1 220px; }
+  .rsvp-field.num input { width: 76px; font-family: 'JetBrains Mono', monospace; text-align: center; }
+  .btn-rsvp { font-family: 'Karla', sans-serif; font-weight: 700; font-size: 14.5px; letter-spacing: 0.02em; background: var(--accent); color: var(--accent-ink); border: none; padding: 12px 26px; border-radius: 10px; cursor: pointer; }
+  .btn-rsvp:hover { filter: brightness(1.06); }
+  .btn-rsvp:active { transform: translateY(1px); }
+  .btn-rsvp:disabled { opacity: 0.55; cursor: not-allowed; }
+  .rsvp-success { margin-top: 14px; padding: 12px 15px; border-radius: 10px; background: var(--good-tint); color: var(--good); font-size: 14px; font-weight: 600; }
+  .rsvp-error { margin-top: 14px; padding: 12px 15px; border-radius: 10px; background: var(--warn-tint); color: var(--warn); font-size: 13.5px; }
+
+  .ticket-row { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 0; margin-top: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); overflow: hidden; }
+  @media (max-width: 720px) { .ticket-row { grid-template-columns: 1fr; } .ticket-perf { display: none; } }
+  .ticket-panel { padding: 26px 28px; }
+  .ticket-perf { width: 0; border-left: 1.5px dashed var(--line-strong); position: relative; }
+  .panel-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 14px; }
+
+  .price-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
+  .price-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; }
+  .price-row .who { color: var(--ink); font-weight: 600; }
+  .price-row .val { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 600; }
+
+  .included { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .included li { font-size: 14px; color: var(--ink-soft); padding-left: 16px; position: relative; }
+  .included li::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--secondary); }
+
+  .cap-max { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); }
+  .cap-max b { color: var(--ink); font-family: 'JetBrains Mono', monospace; }
+
+  .meter-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+  .meter-figure .num { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 600; line-height: 1; }
+  .meter-figure .num small { font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; color: var(--ink-faint); }
+  .meter-figure .cap-label { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .meter-side { text-align: right; }
+  .meter-side .free { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: var(--secondary); }
+  .meter-side .free-label { font-size: 12px; color: var(--ink-soft); }
+
+  .meter-bar { height: 14px; border-radius: 999px; overflow: hidden; display: flex; background: var(--neutral-tint); border: 1px solid var(--line); }
+  .meter-seg { height: 100%; transition: width 0.35s ease; }
+  .seg-priority { background: var(--accent); }
+  .seg-academia { background: var(--secondary); }
+  .seg-buffer { background: repeating-linear-gradient(45deg, var(--warn-tint), var(--warn-tint) 4px, var(--surface-2) 4px, var(--surface-2) 8px); }
+
+  .meter-legend { display: flex; flex-wrap: wrap; gap: 14px 20px; margin-top: 12px; font-size: 12.5px; color: var(--ink-soft); }
+  .meter-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
+  .academia-note { margin-top: 16px; padding: 12px 14px; background: var(--secondary-tint); border-radius: 10px; font-size: 13.5px; color: var(--ink); }
+  .academia-note b { font-family: 'JetBrains Mono', monospace; }
+
+  .settings-bar { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center; padding: 14px 20px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; font-size: 13.5px; }
+  .setting { display: flex; align-items: center; gap: 8px; }
+  .setting label { color: var(--ink-soft); white-space: nowrap; }
+  .setting input { width: 64px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; padding: 5px 8px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); color: var(--ink); }
+  .setting input#inputVinicao { width: 150px; text-align: left; }
+  .badge-tbd { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); background: var(--warn-tint); padding: 3px 8px; border-radius: 999px; }
+
+  .tiles { margin-top: 28px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .tile .tile-label { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; }
+  .tile .tile-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 6px; }
+
+  .list-section { margin-top: 40px; }
+  .list-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .list-head h2 { font-size: 22px; font-weight: 600; }
+  .list-head .sub { font-size: 13.5px; color: var(--ink-soft); margin-top: 3px; max-width: 52ch; }
+  .list-tally { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink-soft); text-align: right; white-space: nowrap; }
+  .list-tally b { color: var(--ink); font-weight: 600; }
+
+  .table-wrap { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); background: var(--surface-2); padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 8px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+
+  .cell-text, .cell-num { border: 1px solid transparent; background: transparent; color: var(--ink); font-family: inherit; font-size: 14px; padding: 6px 7px; border-radius: 6px; width: 100%; }
+  .cell-num { font-family: 'JetBrains Mono', monospace; width: 56px; text-align: right; }
+  .cell-text:hover, .cell-num:hover { border-color: var(--line-strong); }
+  .cell-text:focus, .cell-num:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .cell-text:disabled, .cell-num:disabled { color: var(--ink-soft); }
+
+  td.cell-total, td.cell-value { font-family: 'JetBrains Mono', monospace; font-size: 14px; white-space: nowrap; }
+  td.cell-value { color: var(--ink-soft); }
+
+  .pill { font-family: 'Karla', sans-serif; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; border: none; cursor: pointer; white-space: nowrap; }
+  .pill-good { background: var(--good-tint); color: var(--good); }
+  .pill-neutral { background: var(--neutral-tint); color: var(--ink-soft); }
+  .pill-charge { background: var(--secondary-tint); color: var(--secondary); }
+  .pill:hover { filter: brightness(0.96); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pill:hover { filter: brightness(1.15); } }
+  :root[data-theme="dark"] .pill:hover { filter: brightness(1.15); }
+
+  select.cat-select { font-family: 'Karla', sans-serif; font-size: 12.5px; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; padding: 5px 6px; }
+
+  .icon-btn { background: transparent; border: none; color: var(--ink-faint); font-size: 17px; line-height: 1; cursor: pointer; padding: 4px 7px; border-radius: 6px; }
+  .icon-btn:hover { color: var(--accent); background: var(--accent-tint); }
+
+  .empty-row td { padding: 22px 14px; color: var(--ink-faint); font-size: 13.5px; font-style: italic; text-align: center; }
+
+  .add-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px; background: var(--surface-2); border-top: 1px solid var(--line); }
+  .add-form input[type="text"] { flex: 1 1 200px; min-width: 140px; font-size: 14px; padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-family: inherit; }
+  .add-form .num-field { display: flex; align-items: center; gap: 5px; }
+  .add-form .num-field label { font-size: 12px; color: var(--ink-soft); }
+  .add-form input[type="number"] { width: 58px; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 7px 8px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); }
+  .add-form input:focus { outline: none; border-color: var(--accent); }
+  .btn-add { font-family: 'Karla', sans-serif; font-weight: 700; font-size: 13.5px; background: var(--accent); color: var(--accent-ink); border: none; padding: 9px 18px; border-radius: 8px; cursor: pointer; }
+  .btn-add:hover { filter: brightness(1.06); }
+  .btn-add:active { transform: translateY(1px); }
+  .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  footer.page-footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .sync-note { display: inline-flex; align-items: center; gap: 6px; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); }
+  .sync-dot.off { background: var(--warn); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="brand-row">
+      <img class="brand-logo" src="logo-kioto-bar.png" alt="Kioto Bar — Jiu-jítsu e churrasco" width="64" height="64">
+    </div>
+    <div class="eyebrow">Controle de presença</div>
+    <h1>Churrasco de Final de Ano</h1>
+    <div class="meta">
+      <span>14 de novembro de 2026</span>
+      <span class="dot">·</span>
+      <span>KiotoBar</span>
+      <span class="dot">·</span>
+      <span>80 lugares</span>
+    </div>
+    <p class="lede">Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Convidados da academia confirmam presença abaixo; a lista mostra em tempo real quantos lugares sobram.</p>
+  </div>
+
+  <div class="rsvp-card">
+    <h2>Confirme sua presença</h2>
+    <div class="sub">Preencha seu nome e quantas pessoas vêm com você. Você entra direto na lista — se a Academia já tiver lotado, você cai automaticamente na lista de espera.</div>
+    <div class="rsvp-open" id="rsvpOpenLine"></div>
+    <form class="rsvp-form" id="rsvpForm">
+      <div class="rsvp-field">
+        <label for="rsvpName">Seu nome</label>
+        <input type="text" id="rsvpName" name="rsvpName" placeholder="Nome da família ou convidado" required>
+      </div>
+      <div class="rsvp-field num">
+        <label for="rsvpAdults">Adultos</label>
+        <input type="number" id="rsvpAdults" name="rsvpAdults" min="1" value="1">
+      </div>
+      <div class="rsvp-field num">
+        <label for="rsvpChildren">Crianças</label>
+        <input type="number" id="rsvpChildren" name="rsvpChildren" min="0" value="0">
+      </div>
+      <button type="submit" class="btn-rsvp" id="rsvpSubmitBtn">Vou participar</button>
+    </form>
+    <div class="rsvp-success" id="rsvpSuccess" hidden></div>
+    <div class="rsvp-error" id="rsvpError" hidden></div>
+  </div>
+
+  <div class="ticket-row">
+    <div class="ticket-panel">
+      <div class="panel-label">O que inclui</div>
+      <div class="price-list">
+        <div class="price-row"><span class="who">Adulto</span><span class="val mono">R$ 150</span></div>
+        <div class="price-row"><span class="who">Criança</span><span class="val mono">R$ 100</span></div>
+      </div>
+      <ul class="included">
+        <li>Buffet de churrasco</li>
+        <li>Chopp</li>
+        <li>Bebidas não alcoólicas</li>
+        <li>Brinquedo / estrutura para as crianças</li>
+      </ul>
+      <div class="cap-max">Capacidade máxima do salão: <b>80 pessoas</b></div>
+    </div>
+    <div class="ticket-perf"></div>
+    <div class="ticket-panel">
+      <div class="panel-label">Capacidade</div>
+      <div class="meter-top">
+        <div class="meter-figure">
+          <div class="num"><span id="totalListed">0</span><small> / 80</small></div>
+          <div class="cap-label">pessoas na lista (prioritária + academia)</div>
+        </div>
+        <div class="meter-side">
+          <div class="free" id="freeSlots">80</div>
+          <div class="free-label">vagas livres</div>
+        </div>
+      </div>
+      <div class="meter-bar">
+        <div class="meter-seg seg-priority" id="segPriority" style="width:0%"></div>
+        <div class="meter-seg seg-academia" id="segAcademia" style="width:0%"></div>
+        <div class="meter-seg seg-buffer" id="segBuffer" style="width:6.25%"></div>
+      </div>
+      <div class="meter-legend">
+        <span><i class="swatch" style="background:var(--accent)"></i>Prioritária (<span id="legendPriority">0</span>)</span>
+        <span><i class="swatch" style="background:var(--secondary)"></i>Academia (<span id="legendAcademia">0</span>)</span>
+        <span><i class="swatch" style="background:var(--warn)"></i>Segurança (<span id="legendBuffer">5</span>)</span>
+      </div>
+      <div class="academia-note" id="academiaNote"></div>
+    </div>
+  </div>
+
+  <div class="settings-bar">
+    <div class="setting">
+      <label for="inputBuffer">Vagas de segurança</label>
+      <input type="number" id="inputBuffer" min="0" max="80" value="5">
+    </div>
+    <div class="setting">
+      <label for="inputAgeCutoff">Idade limite p/ criança</label>
+      <input type="number" id="inputAgeCutoff" min="0" max="17" placeholder="—">
+      <span class="badge-tbd" id="ageBadge">a definir</span>
+    </div>
+    <div class="setting">
+      <label for="inputVinicao">WhatsApp do Vinição</label>
+      <input type="text" id="inputVinicao" placeholder="DDI+DDD+número" inputmode="numeric">
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="tile-label">Total na lista</div><div class="tile-val" id="tileTotalPeople">0</div></div>
+    <div class="tile"><div class="tile-label">Confirmados</div><div class="tile-val" id="tileConfirmed">0</div></div>
+    <div class="tile"><div class="tile-label">Valor confirmado</div><div class="tile-val" id="tileValueConfirmed">R$ 0</div></div>
+    <div class="tile"><div class="tile-label">Valor total previsto</div><div class="tile-val" id="tileValueTotal">R$ 0</div></div>
+  </div>
+
+  <div class="list-section" data-category="priority">
+    <div class="list-head">
+      <div>
+        <h2>Lista Prioritária</h2>
+        <div class="sub">Amigos mais próximos e suas famílias — ainda não divulgada para a academia.</div>
+      </div>
+      <div class="list-tally" data-tally></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Confirmado</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <tbody data-tbody></tbody>
+        </table>
+      </div>
+      <form class="add-form" data-add-form>
+        <input type="text" name="family" placeholder="Nome da família ou convidado" required>
+        <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
+        <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
+        <button type="submit" class="btn-add">Adicionar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="list-section" data-category="academia">
+    <div class="list-head">
+      <div>
+        <h2>Lista da Academia</h2>
+        <div class="sub">Preenchida automaticamente pelo botão "Vou participar" acima, ou manualmente aqui.</div>
+      </div>
+      <div class="list-tally" data-tally></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Confirmado</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <tbody data-tbody></tbody>
+        </table>
+      </div>
+      <form class="add-form" data-add-form>
+        <input type="text" name="family" placeholder="Nome da família ou convidado" required>
+        <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
+        <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
+        <button type="submit" class="btn-add">Adicionar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="list-section" data-category="waitlist">
+    <div class="list-head">
+      <div>
+        <h2>Lista de Espera</h2>
+        <div class="sub">Quando a academia lota, novos interessados entram aqui até surgir uma desistência.</div>
+      </div>
+      <div class="list-tally" data-tally></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Confirmado</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <tbody data-tbody></tbody>
+        </table>
+      </div>
+      <form class="add-form" data-add-form>
+        <input type="text" name="family" placeholder="Nome da família ou convidado" required>
+        <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
+        <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
+        <button type="submit" class="btn-add">Adicionar</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <span>Churrasco de Final de Ano · KiotoBar · 14 nov 2026</span>
+    <span class="sync-note"><i class="sync-dot" id="syncDot"></i><span id="syncLabel">conectando…</span></span>
+  </footer>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    projectId: "gen-lang-client-0467322024",
+    appId: "1:388453222653:web:bdd980cab4118bc4d09694",
+    apiKey: "AIzaSyCfFVURo-umQKq24uu6OY5f4n0Fx5a9Qsw",
+    authDomain: "gen-lang-client-0467322024.firebaseapp.com",
+    storageBucket: "gen-lang-client-0467322024.firebasestorage.app",
+    messagingSenderId: "388453222653"
+  };
+  const FIRESTORE_DB_ID = "ai-studio-6f81483d-d10a-4a5f-8588-1acfdceb8560";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app, FIRESTORE_DB_ID);
+  const guestsCol = collection(db, "churrasco_kioto_bar_guests");
+  const settingsRef = doc(db, "churrasco_kioto_bar_settings", "config");
+
+  const CAPACITY = 80;
+  const ADULT_PRICE = 150;
+  const CHILD_PRICE = 100;
+  const CATS = ['priority', 'academia', 'waitlist'];
+  const CAT_LABEL = { priority: 'Prioritária', academia: 'Academia', waitlist: 'Espera' };
+
+  const fmtMoney = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  let guests = [];
+  let settings = { buffer: 5, childAgeCutoff: null, vinicaoPhone: '' };
+  let writesBlocked = false;
+
+  function guestValue(g) { return g.adults * ADULT_PRICE + g.children * CHILD_PRICE; }
+  function guestTotal(g) { return g.adults + g.children; }
+
+  function sumCategory(cat) {
+    const rows = guests.filter(g => g.category === cat);
+    return rows.reduce((acc, g) => {
+      acc.count++;
+      acc.adults += g.adults;
+      acc.children += g.children;
+      acc.total += guestTotal(g);
+      acc.value += guestValue(g);
+      if (g.confirmed) { acc.confirmedTotal += guestTotal(g); acc.confirmedValue += guestValue(g); }
+      return acc;
+    }, { count: 0, adults: 0, children: 0, total: 0, value: 0, confirmedTotal: 0, confirmedValue: 0 });
+  }
+
+  function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+  function computeAcademiaOpen() {
+    const buffer = Number(settings.buffer) || 0;
+    const priority = sumCategory('priority');
+    return Math.max(0, CAPACITY - priority.total - buffer);
+  }
+
+  function render() {
+    const buffer = Number(settings.buffer) || 0;
+    const priority = sumCategory('priority');
+    const academia = sumCategory('academia');
+    const waitlist = sumCategory('waitlist');
+
+    const totalListed = priority.total + academia.total;
+    const freeSlots = Math.max(0, CAPACITY - totalListed);
+    const academiaOpen = computeAcademiaOpen();
+    const academiaRemaining = Math.max(0, academiaOpen - academia.total);
+
+    document.getElementById('totalListed').textContent = totalListed;
+    document.getElementById('freeSlots').textContent = freeSlots;
+    document.getElementById('legendPriority').textContent = priority.total;
+    document.getElementById('legendAcademia').textContent = academia.total;
+    document.getElementById('legendBuffer').textContent = buffer;
+
+    const pPct = Math.min(100, (priority.total / CAPACITY) * 100);
+    const aPct = Math.min(100 - pPct, (academia.total / CAPACITY) * 100);
+    const bPct = Math.min(100 - pPct - aPct, (buffer / CAPACITY) * 100);
+    document.getElementById('segPriority').style.width = pPct + '%';
+    document.getElementById('segAcademia').style.width = aPct + '%';
+    document.getElementById('segBuffer').style.width = Math.max(0, bPct) + '%';
+
+    const note = document.getElementById('academiaNote');
+    if (priority.count === 0) {
+      note.innerHTML = 'A lista da academia ainda não abriu — defina a lista prioritária primeiro para calcular as vagas liberadas.';
+    } else if (academia.total > academiaOpen) {
+      note.innerHTML = 'A academia já passou das <b class="mono">' + academiaOpen + '</b> vagas liberadas (' + buffer + ' de segurança reservadas) — considere mover o excedente para a lista de espera.';
+    } else {
+      note.innerHTML = 'Prioritária ocupa <b class="mono">' + priority.total + '</b> vagas → restam <b class="mono">' + academiaOpen + '</b> vagas para a academia (' + buffer + ' de segurança reservadas).';
+    }
+
+    const rsvpLine = document.getElementById('rsvpOpenLine');
+    if (priority.count === 0) {
+      rsvpLine.innerHTML = 'Lista da academia abre assim que a lista prioritária for definida.';
+    } else if (academiaRemaining > 0) {
+      rsvpLine.innerHTML = '<b>' + academiaRemaining + '</b> vaga(s) livre(s) na Academia agora.';
+    } else {
+      rsvpLine.innerHTML = 'Academia lotada — novas confirmações entram na lista de espera.';
+    }
+
+    document.getElementById('tileTotalPeople').textContent = totalListed;
+    const confirmedTotal = priority.confirmedTotal + academia.confirmedTotal;
+    document.getElementById('tileConfirmed').textContent = confirmedTotal;
+    document.getElementById('tileValueConfirmed').textContent = fmtMoney(priority.confirmedValue + academia.confirmedValue);
+    document.getElementById('tileValueTotal').textContent = fmtMoney(priority.value + academia.value);
+
+    const ageBadge = document.getElementById('ageBadge');
+    const ageInput = document.getElementById('inputAgeCutoff');
+    if (document.activeElement !== ageInput) ageInput.value = settings.childAgeCutoff == null ? '' : settings.childAgeCutoff;
+    ageBadge.hidden = settings.childAgeCutoff != null;
+
+    const bufferInput = document.getElementById('inputBuffer');
+    if (document.activeElement !== bufferInput) bufferInput.value = buffer;
+
+    const vinicaoInput = document.getElementById('inputVinicao');
+    if (document.activeElement !== vinicaoInput) vinicaoInput.value = settings.vinicaoPhone || '';
+
+    const sums = { priority, academia, waitlist };
+    CATS.forEach(cat => renderSection(cat, sums[cat]));
+
+    document.getElementById('rsvpSubmitBtn').disabled = writesBlocked;
+    document.querySelectorAll('.btn-add').forEach(b => b.disabled = writesBlocked);
+  }
+
+  function renderSection(cat, sum) {
+    const section = document.querySelector('.list-section[data-category="' + cat + '"]');
+    const tbody = section.querySelector('[data-tbody]');
+    const tally = section.querySelector('[data-tally]');
+    const rows = guests.filter(g => g.category === cat).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+    tally.innerHTML = '<b>' + sum.count + '</b> famílias · <b>' + sum.total + '</b> pessoas · <b>' + fmtMoney(sum.value) + '</b>';
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Nenhuma família nesta lista ainda</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(g => {
+      const total = guestTotal(g);
+      const value = guestValue(g);
+      const dis = writesBlocked ? ' disabled' : '';
+      const catOptions = CATS.map(c => '<option value="' + c + '"' + (c === g.category ? ' selected' : '') + '>' + CAT_LABEL[c] + '</option>').join('');
+      return '' +
+        '<tr data-id="' + g.id + '">' +
+          '<td><input class="cell-text" data-field="family" value="' + escapeAttr(g.family) + '"' + dis + '></td>' +
+          '<td><input class="cell-num" type="number" min="0" data-field="adults" value="' + g.adults + '"' + dis + '></td>' +
+          '<td><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
+          '<td class="cell-total mono">' + total + '</td>' +
+          '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
+          '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Confirmado' : 'Pendente') + '</button></td>' +
+          '<td><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
+          '<td><button class="pill pill-charge" data-action="charge" title="Enviar cobrança para o Vinição no WhatsApp">Cobrar</button></td>' +
+          '<td><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function buildChargeMessage(g) {
+    const total = guestTotal(g);
+    const value = guestValue(g);
+    return 'Fala Vinição! Pode gerar o link de cobrança do Churrasco de Final de Ano (KiotoBar, 14/11)?\n\n' +
+      'Família/convidado: ' + g.family + '\n' +
+      'Adultos: ' + g.adults + ' x R$150\n' +
+      'Crianças: ' + g.children + ' x R$100\n' +
+      'Total: ' + fmtMoney(value) + ' (' + total + ' pessoa' + (total > 1 ? 's' : '') + ')\n\n' +
+      'Pode ser PIX ou cartão de crédito (com taxa)?';
+  }
+
+  function openCharge(g) {
+    const phone = (settings.vinicaoPhone || '').replace(/\D/g, '');
+    if (!phone) { alert('Configure o WhatsApp do Vinição na barra de configurações antes de gerar a cobrança.'); return; }
+    const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(buildChargeMessage(g));
+    window.open(url, '_blank', 'noopener');
+  }
+
+  async function safeWrite(fn) {
+    try {
+      await fn();
+    } catch (err) {
+      console.error(err);
+      writesBlocked = true;
+      render();
+    }
+  }
+
+  document.querySelectorAll('.list-section').forEach((section) => {
+    const cat = section.getAttribute('data-category');
+
+    section.querySelector('[data-tbody]').addEventListener('change', (e) => {
+      const tr = e.target.closest('tr[data-id]');
+      if (!tr) return;
+      const id = tr.getAttribute('data-id');
+      const field = e.target.getAttribute('data-field');
+      if (!field) return;
+      let value = e.target.value;
+      if (field === 'adults' || field === 'children') value = Math.max(0, Number(value) || 0);
+      safeWrite(() => updateDoc(doc(guestsCol, id), { [field]: value }));
+    });
+
+    section.querySelector('[data-tbody]').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-id]');
+      if (!tr) return;
+      const id = tr.getAttribute('data-id');
+      const action = e.target.getAttribute('data-action');
+      const g = guests.find(x => x.id === id);
+      if (!g) return;
+      if (action === 'toggle-confirmed') {
+        safeWrite(() => updateDoc(doc(guestsCol, id), { confirmed: !g.confirmed }));
+      } else if (action === 'delete') {
+        if (!confirm('Remover "' + g.family + '" da lista?')) return;
+        safeWrite(() => deleteDoc(doc(guestsCol, id)));
+      } else if (action === 'charge') {
+        openCharge(g);
+      }
+    });
+
+    section.querySelector('[data-add-form]').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (writesBlocked) return;
+      const form = e.target;
+      const family = form.family.value.trim();
+      const adults = Math.max(0, Number(form.adults.value) || 0);
+      const children = Math.max(0, Number(form.children.value) || 0);
+      if (!family || adults + children === 0) return;
+      safeWrite(() => addDoc(guestsCol, { family, adults, children, confirmed: false, category: cat, createdAt: Date.now() }));
+      form.reset();
+      form.adults.value = 1;
+      form.children.value = 0;
+    });
+  });
+
+  document.getElementById('inputBuffer').addEventListener('change', (e) => {
+    const v = Math.max(0, Number(e.target.value) || 0);
+    safeWrite(() => setDoc(settingsRef, { buffer: v, childAgeCutoff: settings.childAgeCutoff, vinicaoPhone: settings.vinicaoPhone || '' }));
+  });
+  document.getElementById('inputAgeCutoff').addEventListener('change', (e) => {
+    const raw = e.target.value;
+    const v = raw === '' ? null : Math.max(0, Number(raw) || 0);
+    safeWrite(() => setDoc(settingsRef, { buffer: settings.buffer, childAgeCutoff: v, vinicaoPhone: settings.vinicaoPhone || '' }));
+  });
+  document.getElementById('inputVinicao').addEventListener('change', (e) => {
+    const v = e.target.value.replace(/\D/g, '');
+    safeWrite(() => setDoc(settingsRef, { buffer: settings.buffer, childAgeCutoff: settings.childAgeCutoff, vinicaoPhone: v }));
+  });
+
+  const rsvpForm = document.getElementById('rsvpForm');
+  rsvpForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('rsvpError').hidden = true;
+    const name = document.getElementById('rsvpName').value.trim();
+    const adults = Math.max(1, Number(document.getElementById('rsvpAdults').value) || 1);
+    const children = Math.max(0, Number(document.getElementById('rsvpChildren').value) || 0);
+    if (!name) return;
+
+    const academiaOpen = computeAcademiaOpen();
+    const academia = sumCategory('academia');
+    const newTotal = adults + children;
+    const targetCat = (academia.total + newTotal <= academiaOpen) ? 'academia' : 'waitlist';
+
+    safeWrite(() => addDoc(guestsCol, { family: name, adults, children, confirmed: true, category: targetCat, createdAt: Date.now() }))
+      .then(() => {
+        const successEl = document.getElementById('rsvpSuccess');
+        if (writesBlocked) {
+          const errEl = document.getElementById('rsvpError');
+          errEl.hidden = false;
+          errEl.textContent = 'Não foi possível salvar sua confirmação agora. Tente novamente em instantes.';
+          return;
+        }
+        successEl.hidden = false;
+        successEl.textContent = targetCat === 'academia'
+          ? 'Prontinho, ' + name + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista da Academia.'
+          : 'Obrigado, ' + name + '! A Academia já lotou, então você entrou na lista de espera (' + newTotal + ' pessoa(s)).';
+        rsvpForm.reset();
+        document.getElementById('rsvpAdults').value = 1;
+        document.getElementById('rsvpChildren').value = 0;
+      });
+  });
+
+  onSnapshot(settingsRef, (snap) => {
+    if (snap.exists()) {
+      const data = snap.data();
+      settings = {
+        buffer: typeof data.buffer === 'number' ? data.buffer : 5,
+        childAgeCutoff: typeof data.childAgeCutoff === 'number' ? data.childAgeCutoff : null,
+        vinicaoPhone: typeof data.vinicaoPhone === 'string' ? data.vinicaoPhone : ''
+      };
+    }
+    render();
+  }, (err) => {
+    console.error(err);
+    document.getElementById('syncDot').classList.add('off');
+    document.getElementById('syncLabel').textContent = 'sem conexão com o banco';
+  });
+
+  onSnapshot(guestsCol, (snap) => {
+    guests = snap.docs.map((d) => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        family: typeof data.family === 'string' ? data.family : '',
+        adults: typeof data.adults === 'number' ? data.adults : 0,
+        children: typeof data.children === 'number' ? data.children : 0,
+        confirmed: !!data.confirmed,
+        category: CATS.includes(data.category) ? data.category : 'priority',
+        createdAt: typeof data.createdAt === 'number' ? data.createdAt : 0
+      };
+    });
+    document.getElementById('syncDot').classList.remove('off');
+    document.getElementById('syncLabel').textContent = 'sincronizado em tempo real';
+    render();
+  }, (err) => {
+    console.error(err);
+    document.getElementById('syncDot').classList.add('off');
+    document.getElementById('syncLabel').textContent = 'sem conexão com o banco';
+  });
+
+  render();
+</script>
+</body>
+</html>
