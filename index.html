@@ -270,10 +270,40 @@
   .btn-add:active { transform: translateY(1px); }
   .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  footer.page-footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer.page-footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
   .sync-note { display: inline-flex; align-items: center; gap: 6px; }
   .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); }
   .sync-dot.off { background: var(--warn); }
+
+  .admin-bar { display: inline-flex; align-items: center; gap: 10px; }
+  .admin-link {
+    font-family: 'Karla', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--secondary);
+    background: none;
+    border: 1px solid var(--line-strong);
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .admin-link:hover { background: var(--surface-2); }
+  .admin-email { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink-faint); }
+
+  .admin-banner {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: var(--good-tint);
+    color: var(--good);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+  }
+
+  body:not(.is-admin) .admin-col { display: none; }
+  body:not(.is-admin) .add-form { display: none; }
+
+  .status-badge { font-family: 'Karla', sans-serif; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; display: inline-block; white-space: nowrap; }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -365,19 +395,20 @@
     </div>
   </div>
 
-  <div class="settings-bar">
+  <div class="settings-bar admin-col">
     <div class="setting">
       <label for="inputVinicao">WhatsApp do Vinição</label>
       <input type="text" id="inputVinicao" placeholder="DDI+DDD+número" inputmode="numeric">
     </div>
   </div>
 
-  <div class="tiles">
+  <div class="tiles admin-col">
     <div class="tile"><div class="tile-label">Confirmados</div><div class="tile-val" id="tileTotalPeople">0</div></div>
     <div class="tile"><div class="tile-label">Pagos</div><div class="tile-val" id="tileConfirmed">0</div></div>
     <div class="tile"><div class="tile-label">Valor pago</div><div class="tile-val" id="tileValueConfirmed">R$ 0</div></div>
     <div class="tile"><div class="tile-label">Valor previsto</div><div class="tile-val" id="tileValueTotal">R$ 0</div></div>
   </div>
+  <div class="admin-banner admin-col">Modo organizador ativo — você pode editar a lista, marcar pagamentos e mover pessoas entre as listas.</div>
 
   <div class="list-section" data-category="confirmed">
     <div class="list-head">
@@ -390,7 +421,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -414,7 +445,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -430,6 +461,11 @@
   <footer class="page-footer">
     <span>Churrasco de Final de Ano · KiotoBar · 14 nov 2026</span>
     <span class="sync-note"><i class="sync-dot" id="syncDot"></i><span id="syncLabel">conectando…</span></span>
+    <span class="admin-bar">
+      <span class="admin-email" id="adminEmail" hidden></span>
+      <button type="button" class="admin-link" id="adminSignIn">Entrar como organizador</button>
+      <button type="button" class="admin-link" id="adminSignOut" hidden>Sair</button>
+    </span>
   </footer>
 
 </div>
@@ -439,6 +475,9 @@
   import {
     getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
   const firebaseConfig = {
     projectId: "gen-lang-client-0467322024",
@@ -454,6 +493,11 @@
   const db = getFirestore(app, FIRESTORE_DB_ID);
   const guestsCol = collection(db, "churrasco_kioto_bar_guests");
   const settingsRef = doc(db, "churrasco_kioto_bar_settings", "config");
+
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
+  const ADMIN_EMAILS = ["vlyrio77@gmail.com"];
+  let isAdmin = false;
 
   const CAPACITY = 80;
   const ADULT_PRICE = 150;
@@ -523,6 +567,8 @@
     const vinicaoInput = document.getElementById('inputVinicao');
     if (document.activeElement !== vinicaoInput) vinicaoInput.value = settings.vinicaoPhone || '';
 
+    document.body.classList.toggle('is-admin', isAdmin);
+
     const sums = { confirmed, waitlist };
     CATS.forEach(cat => renderSection(cat, sums[cat]));
 
@@ -539,7 +585,24 @@
     tally.innerHTML = '<b>' + sum.count + '</b> famílias · <b>' + sum.total + '</b> pessoas · <b>' + fmtMoney(sum.value) + '</b>';
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Nenhuma família nesta lista ainda</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 9 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
+      return;
+    }
+
+    if (!isAdmin) {
+      tbody.innerHTML = rows.map(g => {
+        const total = guestTotal(g);
+        const value = guestValue(g);
+        return '' +
+          '<tr>' +
+            '<td>' + escapeAttr(g.family) + '</td>' +
+            '<td class="mono">' + g.adults + '</td>' +
+            '<td class="mono">' + g.children + '</td>' +
+            '<td class="cell-total mono">' + total + '</td>' +
+            '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
+            '<td><span class="status-badge ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '">' + (g.confirmed ? 'Pago' : 'Aguardando pagamento') + '</span></td>' +
+          '</tr>';
+      }).join('');
       return;
     }
 
@@ -556,9 +619,9 @@
           '<td class="cell-total mono">' + total + '</td>' +
           '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
           '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Pago' : 'Aguardando pagamento') + '</button></td>' +
-          '<td><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
-          '<td><button class="pill pill-charge" data-action="charge" title="Enviar cobrança para o Vinição no WhatsApp">Cobrar</button></td>' +
-          '<td><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
+          '<td class="admin-col"><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
+          '<td class="admin-col"><button class="pill pill-charge" data-action="charge" title="Enviar cobrança para o Vinição no WhatsApp">Cobrar</button></td>' +
+          '<td class="admin-col"><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
         '</tr>';
     }).join('');
   }
@@ -718,6 +781,35 @@
   });
 
   render();
+
+  const adminEmailEl = document.getElementById('adminEmail');
+  const adminSignInBtn = document.getElementById('adminSignIn');
+  const adminSignOutBtn = document.getElementById('adminSignOut');
+
+  onAuthStateChanged(auth, (user) => {
+    isAdmin = !!(user && user.email && ADMIN_EMAILS.includes(user.email));
+    if (user) {
+      adminEmailEl.hidden = false;
+      adminEmailEl.textContent = isAdmin ? user.email + ' (organizador)' : user.email + ' (sem acesso admin)';
+      adminSignInBtn.hidden = true;
+      adminSignOutBtn.hidden = false;
+    } else {
+      adminEmailEl.hidden = true;
+      adminSignInBtn.hidden = false;
+      adminSignOutBtn.hidden = true;
+    }
+    render();
+  });
+
+  adminSignInBtn.addEventListener('click', () => {
+    signInWithPopup(auth, googleProvider).catch((err) => {
+      console.error(err);
+      alert('Não foi possível entrar. Tente novamente.');
+    });
+  });
+  adminSignOutBtn.addEventListener('click', () => {
+    signOut(auth);
+  });
 
   (function setupCalendarLinks() {
     const TITLE = 'Churrasco de Final de Ano — KiotoBar';
