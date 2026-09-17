@@ -108,6 +108,49 @@
   .hero .meta .dot { color: var(--line-strong); }
   .hero p.lede { max-width: 62ch; color: var(--ink-soft); font-size: 15.5px; margin-top: 4px; }
 
+  .cal-add { position: relative; margin-top: 14px; width: fit-content; }
+  .cal-add summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Karla', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--secondary);
+    background: var(--secondary-tint);
+    border: 1px solid var(--line-strong);
+    padding: 11px 20px;
+    border-radius: 10px;
+  }
+  .cal-add summary::-webkit-details-marker { display: none; }
+  .cal-add summary:hover { filter: brightness(0.97); }
+  .cal-add summary .plus { font-size: 16px; line-height: 1; }
+  .cal-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px var(--shadow);
+    overflow: hidden;
+  }
+  .cal-options a {
+    padding: 11px 16px;
+    font-size: 14px;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .cal-options a:last-child { border-bottom: none; }
+  .cal-options a:hover { background: var(--surface-2); }
+
   .rsvp-card { margin-top: 26px; padding: 24px 26px; background: linear-gradient(155deg, var(--accent-tint), var(--surface) 65%); border: 1px solid var(--accent-tint-strong); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); }
   .rsvp-card h2 { font-size: 21px; font-weight: 600; }
   .rsvp-card .sub { font-size: 13.5px; color: var(--ink-soft); margin-top: 4px; max-width: 56ch; }
@@ -254,6 +297,13 @@
       <span>80 lugares</span>
     </div>
     <p class="lede">Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Convidados da academia confirmam presença abaixo; a lista mostra em tempo real quantos lugares sobram.</p>
+    <details class="cal-add">
+      <summary><span class="plus">+</span> Adicionar à agenda</summary>
+      <div class="cal-options">
+        <a id="calGoogle" href="#" target="_blank" rel="noopener">Google Agenda</a>
+        <a id="calApple" href="#" download="churrasco-kiotobar.ics">Apple / Outlook (.ics)</a>
+      </div>
+    </details>
   </div>
 
   <div class="rsvp-card">
@@ -739,6 +789,46 @@
   });
 
   render();
+
+  (function setupCalendarLinks() {
+    const TITLE = 'Churrasco de Final de Ano — KiotoBar';
+    const DETAILS = 'Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Buffet de churrasco, chopp, bebidas não alcoólicas e estrutura para as crianças.';
+    const LOCATION = 'Rua Ribeiro Guimarães, 80 - Churrasqueira, KiotoBar';
+    // 14/11/2026, 12:00–17:00 horário de Brasília (UTC-3) = 15:00–20:00 UTC
+    const START_UTC = '20261114T150000Z';
+    const END_UTC = '20261114T200000Z';
+
+    const gcalUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent(TITLE)
+      + '&dates=' + START_UTC + '/' + END_UTC
+      + '&details=' + encodeURIComponent(DETAILS)
+      + '&location=' + encodeURIComponent(LOCATION);
+    document.getElementById('calGoogle').href = gcalUrl;
+
+    const icsEscape = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//KiotoBar//Churrasco Final de Ano//PT-BR',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      'UID:churrasco-kiotobar-2026@kiotobar.github.io',
+      'DTSTAMP:' + START_UTC,
+      'DTSTART:' + START_UTC,
+      'DTEND:' + END_UTC,
+      'SUMMARY:' + icsEscape(TITLE),
+      'DESCRIPTION:' + icsEscape(DETAILS),
+      'LOCATION:' + icsEscape(LOCATION),
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    document.getElementById('calApple').href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+
+    const calAdd = document.querySelector('.cal-add');
+    document.addEventListener('click', (e) => {
+      if (calAdd.open && !calAdd.contains(e.target)) calAdd.open = false;
+    });
+  })();
 </script>
 </body>
 </html>
