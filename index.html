@@ -198,23 +198,20 @@
 
   .meter-bar { height: 14px; border-radius: 999px; overflow: hidden; display: flex; background: var(--neutral-tint); border: 1px solid var(--line); }
   .meter-seg { height: 100%; transition: width 0.35s ease; }
-  .seg-priority { background: var(--accent); }
-  .seg-academia { background: var(--secondary); }
-  .seg-buffer { background: repeating-linear-gradient(45deg, var(--warn-tint), var(--warn-tint) 4px, var(--surface-2) 4px, var(--surface-2) 8px); }
+  .seg-confirmed { background: var(--secondary); }
 
   .meter-legend { display: flex; flex-wrap: wrap; gap: 14px 20px; margin-top: 12px; font-size: 12.5px; color: var(--ink-soft); }
   .meter-legend span { display: inline-flex; align-items: center; gap: 6px; }
   .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
 
-  .academia-note { margin-top: 16px; padding: 12px 14px; background: var(--secondary-tint); border-radius: 10px; font-size: 13.5px; color: var(--ink); }
-  .academia-note b { font-family: 'JetBrains Mono', monospace; }
+  .capacity-note { margin-top: 16px; padding: 12px 14px; background: var(--secondary-tint); border-radius: 10px; font-size: 13.5px; color: var(--ink); }
+  .capacity-note b { font-family: 'JetBrains Mono', monospace; }
 
   .settings-bar { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center; padding: 14px 20px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; font-size: 13.5px; }
   .setting { display: flex; align-items: center; gap: 8px; }
   .setting label { color: var(--ink-soft); white-space: nowrap; }
   .setting input { width: 64px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; padding: 5px 8px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); color: var(--ink); }
   .setting input#inputVinicao { width: 150px; text-align: left; }
-  .badge-tbd { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); background: var(--warn-tint); padding: 3px 8px; border-radius: 999px; }
 
   .tiles { margin-top: 28px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
   @media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
@@ -308,7 +305,7 @@
 
   <div class="rsvp-card">
     <h2>Confirme sua presença</h2>
-    <div class="sub">Preencha seu nome e quantas pessoas vêm com você. Você entra direto na lista — se a Academia já tiver lotado, você cai automaticamente na lista de espera.</div>
+    <div class="sub">Preencha seu nome e quantas pessoas vêm com você. Você entra direto na lista de confirmados — se já estiver lotado, você cai automaticamente na lista de espera.</div>
     <div class="rsvp-open" id="rsvpOpenLine"></div>
     <form class="rsvp-form" id="rsvpForm">
       <div class="rsvp-field">
@@ -350,7 +347,7 @@
       <div class="meter-top">
         <div class="meter-figure">
           <div class="num"><span id="totalListed">0</span><small> / 80</small></div>
-          <div class="cap-label">pessoas na lista (prioritária + academia)</div>
+          <div class="cap-label">pessoas confirmadas</div>
         </div>
         <div class="meter-side">
           <div class="free" id="freeSlots">80</div>
@@ -358,29 +355,16 @@
         </div>
       </div>
       <div class="meter-bar">
-        <div class="meter-seg seg-priority" id="segPriority" style="width:0%"></div>
-        <div class="meter-seg seg-academia" id="segAcademia" style="width:0%"></div>
-        <div class="meter-seg seg-buffer" id="segBuffer" style="width:6.25%"></div>
+        <div class="meter-seg seg-confirmed" id="segConfirmed" style="width:0%"></div>
       </div>
       <div class="meter-legend">
-        <span><i class="swatch" style="background:var(--accent)"></i>Prioritária (<span id="legendPriority">0</span>)</span>
-        <span><i class="swatch" style="background:var(--secondary)"></i>Academia (<span id="legendAcademia">0</span>)</span>
-        <span><i class="swatch" style="background:var(--warn)"></i>Segurança (<span id="legendBuffer">5</span>)</span>
+        <span><i class="swatch" style="background:var(--secondary)"></i>Confirmados (<span id="legendConfirmed">0</span>)</span>
       </div>
-      <div class="academia-note" id="academiaNote"></div>
+      <div class="capacity-note" id="capacityNote"></div>
     </div>
   </div>
 
   <div class="settings-bar">
-    <div class="setting">
-      <label for="inputBuffer">Vagas de segurança</label>
-      <input type="number" id="inputBuffer" min="0" max="80" value="5">
-    </div>
-    <div class="setting">
-      <label for="inputAgeCutoff">Idade limite p/ criança</label>
-      <input type="number" id="inputAgeCutoff" min="0" max="17" placeholder="—">
-      <span class="badge-tbd" id="ageBadge">a definir</span>
-    </div>
     <div class="setting">
       <label for="inputVinicao">WhatsApp do Vinição</label>
       <input type="text" id="inputVinicao" placeholder="DDI+DDD+número" inputmode="numeric">
@@ -388,40 +372,16 @@
   </div>
 
   <div class="tiles">
-    <div class="tile"><div class="tile-label">Total na lista</div><div class="tile-val" id="tileTotalPeople">0</div></div>
-    <div class="tile"><div class="tile-label">Confirmados</div><div class="tile-val" id="tileConfirmed">0</div></div>
-    <div class="tile"><div class="tile-label">Valor confirmado</div><div class="tile-val" id="tileValueConfirmed">R$ 0</div></div>
-    <div class="tile"><div class="tile-label">Valor total previsto</div><div class="tile-val" id="tileValueTotal">R$ 0</div></div>
+    <div class="tile"><div class="tile-label">Confirmados</div><div class="tile-val" id="tileTotalPeople">0</div></div>
+    <div class="tile"><div class="tile-label">Pagos</div><div class="tile-val" id="tileConfirmed">0</div></div>
+    <div class="tile"><div class="tile-label">Valor pago</div><div class="tile-val" id="tileValueConfirmed">R$ 0</div></div>
+    <div class="tile"><div class="tile-label">Valor previsto</div><div class="tile-val" id="tileValueTotal">R$ 0</div></div>
   </div>
 
-  <div class="list-section" data-category="priority">
+  <div class="list-section" data-category="confirmed">
     <div class="list-head">
       <div>
-        <h2>Lista Prioritária</h2>
-        <div class="sub">Amigos mais próximos e suas famílias — ainda não divulgada para a academia.</div>
-      </div>
-      <div class="list-tally" data-tally></div>
-    </div>
-    <div class="table-wrap">
-      <div class="table-scroll">
-        <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Confirmado</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
-          <tbody data-tbody></tbody>
-        </table>
-      </div>
-      <form class="add-form" data-add-form>
-        <input type="text" name="family" placeholder="Nome da família ou convidado" required>
-        <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
-        <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
-        <button type="submit" class="btn-add">Adicionar</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="list-section" data-category="academia">
-    <div class="list-head">
-      <div>
-        <h2>Lista da Academia</h2>
+        <h2>Lista Confirmada</h2>
         <div class="sub">Preenchida automaticamente pelo botão "Vou participar" acima, ou manualmente aqui.</div>
       </div>
       <div class="list-tally" data-tally></div>
@@ -429,7 +389,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Confirmado</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -446,14 +406,14 @@
     <div class="list-head">
       <div>
         <h2>Lista de Espera</h2>
-        <div class="sub">Quando a academia lota, novos interessados entram aqui até surgir uma desistência.</div>
+        <div class="sub">Quando a lista confirmada lota, novos interessados entram aqui até surgir uma desistência.</div>
       </div>
       <div class="list-tally" data-tally></div>
     </div>
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Confirmado</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th>Lista</th><th>Cobrança</th><th></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -497,13 +457,14 @@
   const CAPACITY = 80;
   const ADULT_PRICE = 150;
   const CHILD_PRICE = 100;
-  const CATS = ['priority', 'academia', 'waitlist'];
-  const CAT_LABEL = { priority: 'Prioritária', academia: 'Academia', waitlist: 'Espera' };
+  const CATS = ['confirmed', 'waitlist'];
+  const CAT_LABEL = { confirmed: 'Confirmada', waitlist: 'Espera' };
+  const LEGACY_CAT = { priority: 'confirmed', academia: 'confirmed' };
 
   const fmtMoney = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   let guests = [];
-  let settings = { buffer: 5, childAgeCutoff: null, vinicaoPhone: '' };
+  let settings = { vinicaoPhone: '' };
   let writesBlocked = false;
 
   function guestValue(g) { return g.adults * ADULT_PRICE + g.children * CHILD_PRICE; }
@@ -524,72 +485,44 @@
 
   function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
-  function computeAcademiaOpen() {
-    const buffer = Number(settings.buffer) || 0;
-    const priority = sumCategory('priority');
-    return Math.max(0, CAPACITY - priority.total - buffer);
-  }
-
   function render() {
-    const buffer = Number(settings.buffer) || 0;
-    const priority = sumCategory('priority');
-    const academia = sumCategory('academia');
+    const confirmed = sumCategory('confirmed');
     const waitlist = sumCategory('waitlist');
 
-    const totalListed = priority.total + academia.total;
-    const freeSlots = Math.max(0, CAPACITY - totalListed);
-    const academiaOpen = computeAcademiaOpen();
-    const academiaRemaining = Math.max(0, academiaOpen - academia.total);
+    const freeSlots = Math.max(0, CAPACITY - confirmed.total);
 
-    document.getElementById('totalListed').textContent = totalListed;
+    document.getElementById('totalListed').textContent = confirmed.total;
     document.getElementById('freeSlots').textContent = freeSlots;
-    document.getElementById('legendPriority').textContent = priority.total;
-    document.getElementById('legendAcademia').textContent = academia.total;
-    document.getElementById('legendBuffer').textContent = buffer;
+    document.getElementById('legendConfirmed').textContent = confirmed.total;
 
-    const pPct = Math.min(100, (priority.total / CAPACITY) * 100);
-    const aPct = Math.min(100 - pPct, (academia.total / CAPACITY) * 100);
-    const bPct = Math.min(100 - pPct - aPct, (buffer / CAPACITY) * 100);
-    document.getElementById('segPriority').style.width = pPct + '%';
-    document.getElementById('segAcademia').style.width = aPct + '%';
-    document.getElementById('segBuffer').style.width = Math.max(0, bPct) + '%';
+    const cPct = Math.min(100, (confirmed.total / CAPACITY) * 100);
+    document.getElementById('segConfirmed').style.width = cPct + '%';
 
-    const note = document.getElementById('academiaNote');
-    if (priority.count === 0) {
-      note.innerHTML = 'A lista da academia ainda não abriu — defina a lista prioritária primeiro para calcular as vagas liberadas.';
-    } else if (academia.total > academiaOpen) {
-      note.innerHTML = 'A academia já passou das <b class="mono">' + academiaOpen + '</b> vagas liberadas (' + buffer + ' de segurança reservadas) — considere mover o excedente para a lista de espera.';
+    const note = document.getElementById('capacityNote');
+    if (confirmed.count === 0) {
+      note.innerHTML = 'Ainda não há confirmações.';
+    } else if (confirmed.total >= CAPACITY) {
+      note.innerHTML = 'Lista lotada (<b class="mono">' + CAPACITY + '</b> pessoas) — novas confirmações entram na lista de espera.';
     } else {
-      note.innerHTML = 'Prioritária ocupa <b class="mono">' + priority.total + '</b> vagas → restam <b class="mono">' + academiaOpen + '</b> vagas para a academia (' + buffer + ' de segurança reservadas).';
+      note.innerHTML = 'Restam <b class="mono">' + freeSlots + '</b> vaga(s) das <b class="mono">' + CAPACITY + '</b> disponíveis.';
     }
 
     const rsvpLine = document.getElementById('rsvpOpenLine');
-    if (priority.count === 0) {
-      rsvpLine.innerHTML = 'Lista da academia abre assim que a lista prioritária for definida.';
-    } else if (academiaRemaining > 0) {
-      rsvpLine.innerHTML = '<b>' + academiaRemaining + '</b> vaga(s) livre(s) na Academia agora.';
+    if (freeSlots > 0) {
+      rsvpLine.innerHTML = '<b>' + freeSlots + '</b> vaga(s) livre(s) agora.';
     } else {
-      rsvpLine.innerHTML = 'Academia lotada — novas confirmações entram na lista de espera.';
+      rsvpLine.innerHTML = 'Lista lotada — novas confirmações entram na lista de espera.';
     }
 
-    document.getElementById('tileTotalPeople').textContent = totalListed;
-    const confirmedTotal = priority.confirmedTotal + academia.confirmedTotal;
-    document.getElementById('tileConfirmed').textContent = confirmedTotal;
-    document.getElementById('tileValueConfirmed').textContent = fmtMoney(priority.confirmedValue + academia.confirmedValue);
-    document.getElementById('tileValueTotal').textContent = fmtMoney(priority.value + academia.value);
-
-    const ageBadge = document.getElementById('ageBadge');
-    const ageInput = document.getElementById('inputAgeCutoff');
-    if (document.activeElement !== ageInput) ageInput.value = settings.childAgeCutoff == null ? '' : settings.childAgeCutoff;
-    ageBadge.hidden = settings.childAgeCutoff != null;
-
-    const bufferInput = document.getElementById('inputBuffer');
-    if (document.activeElement !== bufferInput) bufferInput.value = buffer;
+    document.getElementById('tileTotalPeople').textContent = confirmed.total;
+    document.getElementById('tileConfirmed').textContent = confirmed.confirmedTotal;
+    document.getElementById('tileValueConfirmed').textContent = fmtMoney(confirmed.confirmedValue);
+    document.getElementById('tileValueTotal').textContent = fmtMoney(confirmed.value);
 
     const vinicaoInput = document.getElementById('inputVinicao');
     if (document.activeElement !== vinicaoInput) vinicaoInput.value = settings.vinicaoPhone || '';
 
-    const sums = { priority, academia, waitlist };
+    const sums = { confirmed, waitlist };
     CATS.forEach(cat => renderSection(cat, sums[cat]));
 
     document.getElementById('rsvpSubmitBtn').disabled = writesBlocked;
@@ -621,7 +554,7 @@
           '<td><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
           '<td class="cell-total mono">' + total + '</td>' +
           '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
-          '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Confirmado' : 'Pendente') + '</button></td>' +
+          '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Pago' : 'Pendente') + '</button></td>' +
           '<td><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
           '<td><button class="pill pill-charge" data-action="charge" title="Enviar cobrança para o Vinição no WhatsApp">Cobrar</button></td>' +
           '<td><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
@@ -703,18 +636,9 @@
     });
   });
 
-  document.getElementById('inputBuffer').addEventListener('change', (e) => {
-    const v = Math.max(0, Number(e.target.value) || 0);
-    safeWrite(() => setDoc(settingsRef, { buffer: v, childAgeCutoff: settings.childAgeCutoff, vinicaoPhone: settings.vinicaoPhone || '' }));
-  });
-  document.getElementById('inputAgeCutoff').addEventListener('change', (e) => {
-    const raw = e.target.value;
-    const v = raw === '' ? null : Math.max(0, Number(raw) || 0);
-    safeWrite(() => setDoc(settingsRef, { buffer: settings.buffer, childAgeCutoff: v, vinicaoPhone: settings.vinicaoPhone || '' }));
-  });
   document.getElementById('inputVinicao').addEventListener('change', (e) => {
     const v = e.target.value.replace(/\D/g, '');
-    safeWrite(() => setDoc(settingsRef, { buffer: settings.buffer, childAgeCutoff: settings.childAgeCutoff, vinicaoPhone: v }));
+    safeWrite(() => setDoc(settingsRef, { vinicaoPhone: v }));
   });
 
   const rsvpForm = document.getElementById('rsvpForm');
@@ -726,12 +650,11 @@
     const children = Math.max(0, Number(document.getElementById('rsvpChildren').value) || 0);
     if (!name) return;
 
-    const academiaOpen = computeAcademiaOpen();
-    const academia = sumCategory('academia');
+    const confirmed = sumCategory('confirmed');
     const newTotal = adults + children;
-    const targetCat = (academia.total + newTotal <= academiaOpen) ? 'academia' : 'waitlist';
+    const targetCat = (confirmed.total + newTotal <= CAPACITY) ? 'confirmed' : 'waitlist';
 
-    safeWrite(() => addDoc(guestsCol, { family: name, adults, children, confirmed: true, category: targetCat, createdAt: Date.now() }))
+    safeWrite(() => addDoc(guestsCol, { family: name, adults, children, confirmed: false, category: targetCat, createdAt: Date.now() }))
       .then(() => {
         const successEl = document.getElementById('rsvpSuccess');
         if (writesBlocked) {
@@ -741,9 +664,9 @@
           return;
         }
         successEl.hidden = false;
-        successEl.textContent = targetCat === 'academia'
-          ? 'Prontinho, ' + name + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista da Academia.'
-          : 'Obrigado, ' + name + '! A Academia já lotou, então você entrou na lista de espera (' + newTotal + ' pessoa(s)).';
+        successEl.textContent = targetCat === 'confirmed'
+          ? 'Prontinho, ' + name + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista.'
+          : 'Obrigado, ' + name + '! A lista já lotou, então você entrou na lista de espera (' + newTotal + ' pessoa(s)).';
         rsvpForm.reset();
         document.getElementById('rsvpAdults').value = 1;
         document.getElementById('rsvpChildren').value = 0;
@@ -754,8 +677,6 @@
     if (snap.exists()) {
       const data = snap.data();
       settings = {
-        buffer: typeof data.buffer === 'number' ? data.buffer : 5,
-        childAgeCutoff: typeof data.childAgeCutoff === 'number' ? data.childAgeCutoff : null,
         vinicaoPhone: typeof data.vinicaoPhone === 'string' ? data.vinicaoPhone : ''
       };
     }
@@ -775,7 +696,7 @@
         adults: typeof data.adults === 'number' ? data.adults : 0,
         children: typeof data.children === 'number' ? data.children : 0,
         confirmed: !!data.confirmed,
-        category: CATS.includes(data.category) ? data.category : 'priority',
+        category: CATS.includes(data.category) ? data.category : (LEGACY_CAT[data.category] || 'confirmed'),
         createdAt: typeof data.createdAt === 'number' ? data.createdAt : 0
       };
     });
