@@ -159,9 +159,10 @@
   .rsvp-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 16px; }
   .rsvp-field { display: flex; flex-direction: column; gap: 5px; }
   .rsvp-field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-  .rsvp-field input { font-family: inherit; font-size: 14.5px; padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); }
+  .rsvp-field input { font-family: inherit; font-size: 14.5px; padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); width: 100%; }
   .rsvp-field input:focus { outline: none; border-color: var(--accent); }
-  #rsvpName { min-width: 220px; flex: 1 1 220px; }
+  .rsvp-field.name { min-width: 220px; flex: 1 1 220px; }
+  .rsvp-field.num { flex: 0 0 auto; }
   .rsvp-field.num input { width: 76px; font-family: 'JetBrains Mono', monospace; text-align: center; }
   .btn-rsvp { font-family: 'Karla', sans-serif; font-weight: 700; font-size: 14.5px; letter-spacing: 0.02em; background: var(--accent); color: var(--accent-ink); border: none; padding: 12px 26px; border-radius: 10px; cursor: pointer; }
   .btn-rsvp:hover { filter: brightness(1.06); }
@@ -308,7 +309,7 @@
     <div class="sub">Preencha seu nome e quantas pessoas vêm com você. Você entra direto na lista de confirmados — se já estiver lotado, você cai automaticamente na lista de espera.</div>
     <div class="rsvp-open" id="rsvpOpenLine"></div>
     <form class="rsvp-form" id="rsvpForm">
-      <div class="rsvp-field">
+      <div class="rsvp-field name">
         <label for="rsvpName">Seu nome</label>
         <input type="text" id="rsvpName" name="rsvpName" placeholder="Nome da família ou convidado" required>
       </div>
@@ -464,7 +465,7 @@
   const fmtMoney = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   let guests = [];
-  let settings = { vinicaoPhone: '' };
+  let settings = { vinicaoPhone: '5521981155451' };
   let writesBlocked = false;
 
   function guestValue(g) { return g.adults * ADULT_PRICE + g.children * CHILD_PRICE; }
@@ -554,7 +555,7 @@
           '<td><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
           '<td class="cell-total mono">' + total + '</td>' +
           '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
-          '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Pago' : 'Pendente') + '</button></td>' +
+          '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Pago' : 'Aguardando pagamento') + '</button></td>' +
           '<td><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
           '<td><button class="pill pill-charge" data-action="charge" title="Enviar cobrança para o Vinição no WhatsApp">Cobrar</button></td>' +
           '<td><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
@@ -573,9 +574,12 @@
       'Pode ser PIX ou cartão de crédito (com taxa)?';
   }
 
-  function openCharge(g) {
+  function openCharge(g, silent) {
     const phone = (settings.vinicaoPhone || '').replace(/\D/g, '');
-    if (!phone) { alert('Configure o WhatsApp do Vinição na barra de configurações antes de gerar a cobrança.'); return; }
+    if (!phone) {
+      if (!silent) alert('Configure o WhatsApp do Vinição na barra de configurações antes de gerar a cobrança.');
+      return;
+    }
     const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(buildChargeMessage(g));
     window.open(url, '_blank', 'noopener');
   }
@@ -663,10 +667,14 @@
           errEl.textContent = 'Não foi possível salvar sua confirmação agora. Tente novamente em instantes.';
           return;
         }
-        successEl.hidden = false;
-        successEl.textContent = targetCat === 'confirmed'
-          ? 'Prontinho, ' + name + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista.'
-          : 'Obrigado, ' + name + '! A lista já lotou, então você entrou na lista de espera (' + newTotal + ' pessoa(s)).';
+        if (targetCat === 'confirmed') {
+          successEl.hidden = false;
+          successEl.textContent = 'Prontinho, ' + name + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista — status: aguardando pagamento. Vamos abrir o WhatsApp pra você combinar o pagamento com o Vinição.';
+          openCharge({ family: name, adults, children }, true);
+        } else {
+          successEl.hidden = false;
+          successEl.textContent = 'Obrigado, ' + name + '! A lista já lotou, então você entrou na lista de espera (' + newTotal + ' pessoa(s)).';
+        }
         rsvpForm.reset();
         document.getElementById('rsvpAdults').value = 1;
         document.getElementById('rsvpChildren').value = 0;
@@ -677,7 +685,7 @@
     if (snap.exists()) {
       const data = snap.data();
       settings = {
-        vinicaoPhone: typeof data.vinicaoPhone === 'string' ? data.vinicaoPhone : ''
+        vinicaoPhone: (typeof data.vinicaoPhone === 'string' && data.vinicaoPhone) ? data.vinicaoPhone : '5521981155451'
       };
     }
     render();
