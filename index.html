@@ -162,6 +162,8 @@
   .rsvp-field input { font-family: inherit; font-size: 14.5px; padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); width: 100%; }
   .rsvp-field input:focus { outline: none; border-color: var(--accent); }
   .rsvp-field.name { min-width: 220px; flex: 1 1 220px; }
+  .rsvp-field.phone { min-width: 150px; flex: 0 1 150px; }
+  .rsvp-field.phone input { font-family: 'JetBrains Mono', monospace; }
   .rsvp-field.num { flex: 0 0 auto; }
   .rsvp-field.num input { width: 76px; font-family: 'JetBrains Mono', monospace; text-align: center; }
   .btn-rsvp { font-family: 'Karla', sans-serif; font-weight: 700; font-size: 14.5px; letter-spacing: 0.02em; background: var(--accent); color: var(--accent-ink); border: none; padding: 12px 26px; border-radius: 10px; cursor: pointer; }
@@ -289,7 +291,7 @@
   .empty-row td { padding: 22px 14px; color: var(--ink-faint); font-size: 13.5px; font-style: italic; text-align: center; }
 
   .add-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px; background: var(--surface-2); border-top: 1px solid var(--line); }
-  .add-form input[type="text"] { flex: 1 1 200px; min-width: 140px; font-size: 14px; padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-family: inherit; }
+  .add-form input[type="text"], .add-form input[type="tel"] { flex: 1 1 200px; min-width: 140px; font-size: 14px; padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-family: inherit; }
   .add-form .num-field { display: flex; align-items: center; gap: 5px; }
   .add-form .num-field label { font-size: 12px; color: var(--ink-soft); }
   .add-form input[type="number"] { width: 58px; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 7px 8px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); }
@@ -371,6 +373,10 @@
       <div class="rsvp-field name">
         <label for="rsvpName">Seu nome</label>
         <input type="text" id="rsvpName" name="rsvpName" placeholder="Nome da família ou convidado" required>
+      </div>
+      <div class="rsvp-field phone">
+        <label for="rsvpPhone">WhatsApp</label>
+        <input type="tel" id="rsvpPhone" name="rsvpPhone" placeholder="DDD + número" inputmode="numeric" required>
       </div>
       <div class="rsvp-field num">
         <label for="rsvpAdults">Adultos</label>
@@ -465,12 +471,13 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
       <form class="add-form" data-add-form>
         <input type="text" name="family" placeholder="Nome da família ou convidado" required>
+        <input type="tel" name="phone" placeholder="WhatsApp (DDD + número)" inputmode="numeric">
         <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
         <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
         <button type="submit" class="btn-add">Adicionar</button>
@@ -489,12 +496,13 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
       <form class="add-form" data-add-form>
         <input type="text" name="family" placeholder="Nome da família ou convidado" required>
+        <input type="tel" name="phone" placeholder="WhatsApp (DDD + número)" inputmode="numeric">
         <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
         <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
         <button type="submit" class="btn-add">Adicionar</button>
@@ -631,7 +639,7 @@
     tally.innerHTML = '<b>' + sum.count + '</b> famílias · <b>' + sum.total + '</b> pessoas · <b>' + fmtMoney(sum.value) + '</b>';
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 9 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 10 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
       return;
     }
 
@@ -660,6 +668,7 @@
       return '' +
         '<tr data-id="' + g.id + '">' +
           '<td><input class="cell-text" data-field="family" value="' + escapeAttr(g.family) + '"' + dis + '></td>' +
+          '<td class="admin-col"><input class="cell-text" data-field="phone" value="' + escapeAttr(g.phone || '') + '" placeholder="DDD+número"' + dis + '></td>' +
           '<td><input class="cell-num" type="number" min="0" data-field="adults" value="' + g.adults + '"' + dis + '></td>' +
           '<td><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
           '<td class="cell-total mono">' + total + '</td>' +
@@ -678,11 +687,13 @@
     return 'Oi, ' + g.family + '! Sua presença no Churrasco de Final de Ano (KiotoBar, 14/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + '.\n\n' +
       'Total a pagar: ' + fmtMoney(value) + '\n\n' +
       'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
+      'Caso prefira pagar em cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
       'Qualquer dúvida é só chamar!';
   }
 
   function openChargeToGuest(g) {
-    const url = 'https://wa.me/?text=' + encodeURIComponent(buildGuestPixMessage(g));
+    const phone = (g.phone || '').replace(/\D/g, '');
+    const url = (phone ? 'https://wa.me/' + phone : 'https://wa.me/') + '?text=' + encodeURIComponent(buildGuestPixMessage(g));
     window.open(url, '_blank', 'noopener');
   }
 
@@ -728,6 +739,7 @@
       if (!field) return;
       let value = e.target.value;
       if (field === 'adults' || field === 'children') value = Math.max(0, Number(value) || 0);
+      if (field === 'phone') value = value.replace(/\D/g, '');
       safeWrite(() => updateDoc(doc(guestsCol, id), { [field]: value }));
     });
 
@@ -753,10 +765,11 @@
       if (writesBlocked) return;
       const form = e.target;
       const family = form.family.value.trim();
+      const phone = form.phone.value.replace(/\D/g, '');
       const adults = Math.max(0, Number(form.adults.value) || 0);
       const children = Math.max(0, Number(form.children.value) || 0);
       if (!family || adults + children === 0) return;
-      safeWrite(() => addDoc(guestsCol, { family, adults, children, confirmed: false, category: cat, createdAt: Date.now() }));
+      safeWrite(() => addDoc(guestsCol, { family, phone, adults, children, confirmed: false, category: cat, createdAt: Date.now() }));
       form.reset();
       form.adults.value = 1;
       form.children.value = 0;
@@ -803,16 +816,17 @@
     e.preventDefault();
     document.getElementById('rsvpError').hidden = true;
     const name = document.getElementById('rsvpName').value.trim();
+    const phone = document.getElementById('rsvpPhone').value.replace(/\D/g, '');
     const adults = Math.max(1, Number(document.getElementById('rsvpAdults').value) || 1);
     const children = Math.max(0, Number(document.getElementById('rsvpChildren').value) || 0);
-    if (!name) return;
+    if (!name || !phone) return;
 
     const confirmed = sumCategory('confirmed');
     const newTotal = adults + children;
     const targetCat = (confirmed.total + newTotal <= CAPACITY) ? 'confirmed' : 'waitlist';
     const totalValue = adults * ADULT_PRICE + children * CHILD_PRICE;
 
-    safeWrite(() => addDoc(guestsCol, { family: name, adults, children, confirmed: false, category: targetCat, createdAt: Date.now() }))
+    safeWrite(() => addDoc(guestsCol, { family: name, phone, adults, children, confirmed: false, category: targetCat, createdAt: Date.now() }))
       .then(() => {
         const successEl = document.getElementById('rsvpSuccess');
         if (writesBlocked) {
@@ -879,6 +893,7 @@
       return {
         id: d.id,
         family: typeof data.family === 'string' ? data.family : '',
+        phone: typeof data.phone === 'string' ? data.phone : '',
         adults: typeof data.adults === 'number' ? data.adults : 0,
         children: typeof data.children === 'number' ? data.children : 0,
         confirmed: !!data.confirmed,
