@@ -427,7 +427,7 @@
   <div class="pix-card">
     <div class="panel-label">Como pagar · PIX</div>
     <div class="pix-body">
-      <img class="pix-qr-img" id="pixQrImg" src="pix-qrcode.png" alt="QR Code Pix" hidden>
+      <img class="pix-qr-img" id="pixQrImg" src="pix-qrcode.png" alt="QR Code Pix">
       <div class="pix-info">
         <div class="pix-receiver">Transferir Pix para: <b>Vinicius Fernandes de Oliveira</b></div>
         <div class="pix-key-row">
@@ -826,10 +826,15 @@
           successEl.innerHTML =
             'Prontinho, ' + escapeAttr(name) + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista — status: aguardando pagamento.' +
             '<div class="payment-panel">' +
-              'Total: <b class="mono">' + fmtMoney(totalValue) + '</b> — pague por Pix pra <b>' + PIX_RECEIVER + '</b>:' +
-              '<div class="pix-key-row">' +
-                '<span class="pix-key">' + PIX_KEY + '</span>' +
-                '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
+              '<div class="pix-body">' +
+                '<img class="pix-qr-img" src="pix-qrcode.png" alt="QR Code Pix">' +
+                '<div class="pix-info">' +
+                  'Total: <b class="mono">' + fmtMoney(totalValue) + '</b> — pague por Pix pra <b>' + PIX_RECEIVER + '</b>:' +
+                  '<div class="pix-key-row">' +
+                    '<span class="pix-key">' + PIX_KEY + '</span>' +
+                    '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
+                  '</div>' +
+                '</div>' +
               '</div>' +
               '<button type="button" class="btn-secondary" data-action="charge-manual" data-name="' + escapeAttr(name) + '" data-adults="' + adults + '" data-children="' + children + '">Prefiro cartão de crédito (com taxa) — falar com Vinição</button>' +
             '</div>';
