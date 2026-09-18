@@ -168,8 +168,37 @@
   .btn-rsvp:hover { filter: brightness(1.06); }
   .btn-rsvp:active { transform: translateY(1px); }
   .btn-rsvp:disabled { opacity: 0.55; cursor: not-allowed; }
-  .rsvp-success { margin-top: 14px; padding: 12px 15px; border-radius: 10px; background: var(--good-tint); color: var(--good); font-size: 14px; font-weight: 600; }
+  .rsvp-success { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: var(--good-tint); color: var(--good); font-size: 14px; font-weight: 600; }
   .rsvp-error { margin-top: 14px; padding: 12px 15px; border-radius: 10px; background: var(--warn-tint); color: var(--warn); font-size: 13.5px; }
+
+  .pix-card { margin-top: 24px; padding: 22px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); }
+  .pix-card .panel-label { margin-bottom: 10px; }
+  .pix-card .pix-body { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .pix-qr-img { width: 120px; height: 120px; border-radius: 10px; border: 1px solid var(--line); flex-shrink: 0; }
+  .pix-info { flex: 1 1 240px; min-width: 220px; }
+  .pix-receiver { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px; }
+  .pix-receiver b { color: var(--ink); }
+  .pix-key-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pix-key { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 12px; color: var(--ink); word-break: break-all; }
+  .btn-copy { font-family: 'Karla', sans-serif; font-weight: 700; font-size: 12.5px; background: var(--secondary-tint); color: var(--secondary); border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+  .btn-copy:hover { filter: brightness(0.96); }
+  .pix-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 10px; }
+
+  .payment-panel { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08); }
+  .payment-panel .pix-key-row { margin-top: 6px; }
+  .btn-secondary {
+    font-family: 'Karla', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    background: var(--secondary-tint);
+    color: var(--secondary);
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .btn-secondary:hover { filter: brightness(0.96); }
 
   .ticket-row { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 0; margin-top: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); overflow: hidden; }
   @media (max-width: 720px) { .ticket-row { grid-template-columns: 1fr; } .ticket-perf { display: none; } }
@@ -395,6 +424,21 @@
     </div>
   </div>
 
+  <div class="pix-card">
+    <div class="panel-label">Como pagar · PIX</div>
+    <div class="pix-body">
+      <img class="pix-qr-img" id="pixQrImg" src="pix-qrcode.png" alt="QR Code Pix" hidden>
+      <div class="pix-info">
+        <div class="pix-receiver">Transferir Pix para: <b>Vinicius Fernandes de Oliveira</b></div>
+        <div class="pix-key-row">
+          <span class="pix-key" id="pixKeyText">741deafb-f688-41c2-86c3-925160f22029</span>
+          <button type="button" class="btn-copy" data-copy="741deafb-f688-41c2-86c3-925160f22029">Copiar chave</button>
+        </div>
+        <div class="pix-note">Chave aleatória (InfinitePay). O valor é conforme sua confirmação acima — adulto R$150, criança R$100.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="settings-bar admin-col">
     <div class="setting">
       <label for="inputVinicao">WhatsApp do Vinição</label>
@@ -502,6 +546,8 @@
   const CAPACITY = 80;
   const ADULT_PRICE = 150;
   const CHILD_PRICE = 100;
+  const PIX_KEY = '741deafb-f688-41c2-86c3-925160f22029';
+  const PIX_RECEIVER = 'Vinicius Fernandes de Oliveira';
   const CATS = ['confirmed', 'waitlist'];
   const CAT_LABEL = { confirmed: 'Confirmada', waitlist: 'Espera' };
   const LEGACY_CAT = { priority: 'confirmed', academia: 'confirmed' };
@@ -620,13 +666,27 @@
           '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
           '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Pago' : 'Aguardando pagamento') + '</button></td>' +
           '<td class="admin-col"><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
-          '<td class="admin-col"><button class="pill pill-charge" data-action="charge" title="Enviar cobrança para o Vinição no WhatsApp">Cobrar</button></td>' +
+          '<td class="admin-col"><button class="pill pill-charge" data-action="charge" title="Enviar mensagem de cobrança (Pix) para o responsável da reserva">Cobrar</button></td>' +
           '<td class="admin-col"><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
         '</tr>';
     }).join('');
   }
 
-  function buildChargeMessage(g) {
+  function buildGuestPixMessage(g) {
+    const total = guestTotal(g);
+    const value = guestValue(g);
+    return 'Oi, ' + g.family + '! Sua presença no Churrasco de Final de Ano (KiotoBar, 14/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + '.\n\n' +
+      'Total a pagar: ' + fmtMoney(value) + '\n\n' +
+      'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
+      'Qualquer dúvida é só chamar!';
+  }
+
+  function openChargeToGuest(g) {
+    const url = 'https://wa.me/?text=' + encodeURIComponent(buildGuestPixMessage(g));
+    window.open(url, '_blank', 'noopener');
+  }
+
+  function buildCardHelpMessage(g) {
     const total = guestTotal(g);
     const value = guestValue(g);
     return 'Fala Vinição! Pode gerar o link de cobrança do Churrasco de Final de Ano (KiotoBar, 14/11)?\n\n' +
@@ -634,16 +694,16 @@
       'Adultos: ' + g.adults + ' x R$150\n' +
       'Crianças: ' + g.children + ' x R$100\n' +
       'Total: ' + fmtMoney(value) + ' (' + total + ' pessoa' + (total > 1 ? 's' : '') + ')\n\n' +
-      'Pode ser PIX ou cartão de crédito (com taxa)?';
+      'Pode gerar o link de cartão de crédito (com taxa)?';
   }
 
-  function openCharge(g, silent) {
+  function openCardHelp(g, silent) {
     const phone = (settings.vinicaoPhone || '').replace(/\D/g, '');
     if (!phone) {
       if (!silent) alert('Configure o WhatsApp do Vinição na barra de configurações antes de gerar a cobrança.');
       return;
     }
-    const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(buildChargeMessage(g));
+    const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(buildCardHelpMessage(g));
     window.open(url, '_blank', 'noopener');
   }
 
@@ -684,7 +744,7 @@
         if (!confirm('Remover "' + g.family + '" da lista?')) return;
         safeWrite(() => deleteDoc(doc(guestsCol, id)));
       } else if (action === 'charge') {
-        openCharge(g);
+        openChargeToGuest(g);
       }
     });
 
@@ -709,6 +769,36 @@
   });
 
   const rsvpForm = document.getElementById('rsvpForm');
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    }
+    fallbackCopy(text);
+    return Promise.resolve();
+  }
+
+  document.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      copyToClipboard(btn.getAttribute('data-copy')).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Copiado!';
+        setTimeout(() => { btn.textContent = original; }, 1800);
+      });
+    });
+  });
+
   rsvpForm.addEventListener('submit', (e) => {
     e.preventDefault();
     document.getElementById('rsvpError').hidden = true;
@@ -720,6 +810,7 @@
     const confirmed = sumCategory('confirmed');
     const newTotal = adults + children;
     const targetCat = (confirmed.total + newTotal <= CAPACITY) ? 'confirmed' : 'waitlist';
+    const totalValue = adults * ADULT_PRICE + children * CHILD_PRICE;
 
     safeWrite(() => addDoc(guestsCol, { family: name, adults, children, confirmed: false, category: targetCat, createdAt: Date.now() }))
       .then(() => {
@@ -730,12 +821,31 @@
           errEl.textContent = 'Não foi possível salvar sua confirmação agora. Tente novamente em instantes.';
           return;
         }
+        successEl.hidden = false;
         if (targetCat === 'confirmed') {
-          successEl.hidden = false;
-          successEl.textContent = 'Prontinho, ' + name + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista — status: aguardando pagamento. Vamos abrir o WhatsApp pra você combinar o pagamento com o Vinição.';
-          openCharge({ family: name, adults, children }, true);
+          successEl.innerHTML =
+            'Prontinho, ' + escapeAttr(name) + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista — status: aguardando pagamento.' +
+            '<div class="payment-panel">' +
+              'Total: <b class="mono">' + fmtMoney(totalValue) + '</b> — pague por Pix pra <b>' + PIX_RECEIVER + '</b>:' +
+              '<div class="pix-key-row">' +
+                '<span class="pix-key">' + PIX_KEY + '</span>' +
+                '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
+              '</div>' +
+              '<button type="button" class="btn-secondary" data-action="charge-manual" data-name="' + escapeAttr(name) + '" data-adults="' + adults + '" data-children="' + children + '">Prefiro cartão de crédito (com taxa) — falar com Vinição</button>' +
+            '</div>';
+          successEl.querySelector('[data-action="charge-manual"]').addEventListener('click', (ev) => {
+            const b = ev.currentTarget;
+            openCardHelp({ family: b.getAttribute('data-name'), adults: Number(b.getAttribute('data-adults')), children: Number(b.getAttribute('data-children')) });
+          });
+          successEl.querySelector('[data-copy]').addEventListener('click', (ev) => {
+            copyToClipboard(PIX_KEY).then(() => {
+              const b = ev.currentTarget;
+              const original = b.textContent;
+              b.textContent = 'Copiado!';
+              setTimeout(() => { b.textContent = original; }, 1800);
+            });
+          });
         } else {
-          successEl.hidden = false;
           successEl.textContent = 'Obrigado, ' + name + '! A lista já lotou, então você entrou na lista de espera (' + newTotal + ' pessoa(s)).';
         }
         rsvpForm.reset();
