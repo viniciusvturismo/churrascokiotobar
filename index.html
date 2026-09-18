@@ -161,6 +161,10 @@
   .rsvp-field label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
   .rsvp-field input { font-family: inherit; font-size: 14.5px; padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); width: 100%; }
   .rsvp-field input:focus { outline: none; border-color: var(--accent); }
+  .rsvp-field input[type="file"] { padding: 7px 10px; font-size: 13px; min-width: 220px; }
+  .btn-rsvp:disabled, .btn-copy:disabled { opacity: 0.6; cursor: not-allowed; }
+  .receipt-link { color: var(--secondary); font-weight: 700; text-decoration: none; }
+  .receipt-link:hover { text-decoration: underline; }
   .rsvp-field.name { min-width: 220px; flex: 1 1 220px; }
   .rsvp-field.phone { min-width: 150px; flex: 0 1 150px; }
   .rsvp-field.phone input { font-family: 'JetBrains Mono', monospace; }
@@ -251,7 +255,7 @@
   .tile .tile-label { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; }
   .tile .tile-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 6px; }
 
-  .list-section { margin-top: 40px; }
+  .list-section, .receipts-panel { margin-top: 40px; }
   .list-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
   .list-head h2 { font-size: 22px; font-weight: 600; }
   .list-head .sub { font-size: 13.5px; color: var(--ink-soft); margin-top: 3px; max-width: 52ch; }
@@ -445,6 +449,42 @@
     </div>
   </div>
 
+  <div class="pix-card">
+    <div class="panel-label">Já pagou? Envie seu comprovante</div>
+    <div class="rsvp-open">Foto ou PDF do comprovante — a gente confere e marca seu pagamento.</div>
+    <form class="rsvp-form" id="receiptForm">
+      <div class="rsvp-field name">
+        <label for="receiptName">Seu nome (o mesmo da confirmação)</label>
+        <input type="text" id="receiptName" name="receiptName" placeholder="Nome da família ou convidado" required>
+      </div>
+      <div class="rsvp-field">
+        <label for="receiptFile">Comprovante</label>
+        <input type="file" id="receiptFile" name="receiptFile" accept="image/*,application/pdf" required>
+      </div>
+      <button type="submit" class="btn-rsvp" id="receiptSubmitBtn">Enviar comprovante</button>
+    </form>
+    <div class="rsvp-success" id="receiptSuccess" hidden></div>
+    <div class="rsvp-error" id="receiptError" hidden></div>
+  </div>
+
+  <div class="receipts-panel admin-col">
+    <div class="list-head">
+      <div>
+        <h2>Comprovantes recebidos</h2>
+        <div class="sub">Confira o arquivo e marque a pessoa como "Pago" na lista abaixo.</div>
+      </div>
+      <div class="list-tally" id="receiptsTally"></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Nome</th><th>Enviado em</th><th>Arquivo</th><th></th></tr></thead>
+          <tbody id="receiptsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="settings-bar admin-col">
     <div class="setting">
       <label for="inputVinicao">WhatsApp do Vinição</label>
@@ -530,6 +570,9 @@
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import {
+    getStorage, ref as storageRef, uploadBytes, getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
   const firebaseConfig = {
     projectId: "gen-lang-client-0467322024",
@@ -545,6 +588,8 @@
   const db = getFirestore(app, FIRESTORE_DB_ID);
   const guestsCol = collection(db, "churrasco_kioto_bar_guests");
   const settingsRef = doc(db, "churrasco_kioto_bar_settings", "config");
+  const receiptsCol = collection(db, "churrasco_kioto_bar_receipts");
+  const storage = getStorage(app);
 
   const auth = getAuth(app);
   const googleProvider = new GoogleAuthProvider();
@@ -850,8 +895,15 @@
                   '</div>' +
                 '</div>' +
               '</div>' +
+              '<button type="button" class="btn-rsvp" data-action="goto-receipt" data-name="' + escapeAttr(name) + '" style="margin-top:10px">Já paguei — enviar comprovante</button>' +
               '<button type="button" class="btn-secondary" data-action="charge-manual" data-name="' + escapeAttr(name) + '" data-adults="' + adults + '" data-children="' + children + '">Prefiro cartão de crédito (com taxa) — falar com Vinição</button>' +
             '</div>';
+          successEl.querySelector('[data-action="goto-receipt"]').addEventListener('click', (ev) => {
+            const receiptNameInput = document.getElementById('receiptName');
+            receiptNameInput.value = ev.currentTarget.getAttribute('data-name');
+            document.getElementById('receiptForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('receiptFile').focus();
+          });
           successEl.querySelector('[data-action="charge-manual"]').addEventListener('click', (ev) => {
             const b = ev.currentTarget;
             openCardHelp({ family: b.getAttribute('data-name'), adults: Number(b.getAttribute('data-adults')), children: Number(b.getAttribute('data-children')) });
@@ -871,6 +923,82 @@
         document.getElementById('rsvpAdults').value = 1;
         document.getElementById('rsvpChildren').value = 0;
       });
+  });
+
+  const receiptForm = document.getElementById('receiptForm');
+  const receiptSubmitBtn = document.getElementById('receiptSubmitBtn');
+  const MAX_RECEIPT_BYTES = 10 * 1024 * 1024;
+
+  receiptForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('receiptError');
+    const successEl = document.getElementById('receiptSuccess');
+    errEl.hidden = true;
+    successEl.hidden = true;
+
+    const name = document.getElementById('receiptName').value.trim();
+    const fileInput = document.getElementById('receiptFile');
+    const file = fileInput.files && fileInput.files[0];
+    if (!name || !file) return;
+    if (file.size > MAX_RECEIPT_BYTES) {
+      errEl.hidden = false;
+      errEl.textContent = 'Arquivo muito grande (máximo 10MB). Tente uma foto com menos resolução ou comprima o PDF.';
+      return;
+    }
+
+    receiptSubmitBtn.disabled = true;
+    receiptSubmitBtn.textContent = 'Enviando…';
+
+    const path = 'churrasco_kioto_bar_receipts/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '_' + file.name;
+    const fileRef = storageRef(storage, path);
+
+    uploadBytes(fileRef, file)
+      .then((snap) => getDownloadURL(snap.ref))
+      .then((fileUrl) => addDoc(receiptsCol, { family: name, fileUrl, fileName: file.name, uploadedAt: Date.now() }))
+      .then(() => {
+        successEl.hidden = false;
+        successEl.textContent = 'Comprovante recebido, ' + name + '! A gente confere e já marca seu pagamento.';
+        receiptForm.reset();
+      })
+      .catch((err) => {
+        console.error(err);
+        errEl.hidden = false;
+        errEl.textContent = 'Não foi possível enviar o comprovante agora. Tente novamente em instantes.';
+      })
+      .finally(() => {
+        receiptSubmitBtn.disabled = false;
+        receiptSubmitBtn.textContent = 'Enviar comprovante';
+      });
+  });
+
+  function fmtDateTime(ts) {
+    return new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  let unsubReceipts = null;
+  function renderReceipts(docs) {
+    const tbody = document.getElementById('receiptsBody');
+    const tally = document.getElementById('receiptsTally');
+    if (!tbody) return;
+    tally.innerHTML = '<b>' + docs.length + '</b> comprovante(s) pendente(s) de revisão';
+    if (docs.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum comprovante enviado ainda</td></tr>';
+      return;
+    }
+    tbody.innerHTML = docs.map((r) => {
+      return '<tr data-id="' + r.id + '">' +
+        '<td>' + escapeAttr(r.family) + '</td>' +
+        '<td class="mono">' + fmtDateTime(r.uploadedAt) + '</td>' +
+        '<td><a class="receipt-link" href="' + r.fileUrl + '" target="_blank" rel="noopener">Ver comprovante</a></td>' +
+        '<td><button class="icon-btn" data-action="dismiss-receipt" title="Já conferi, remover da lista" aria-label="Dispensar">×</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  document.getElementById('receiptsBody').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr || e.target.getAttribute('data-action') !== 'dismiss-receipt') return;
+    safeWrite(() => deleteDoc(doc(receiptsCol, tr.getAttribute('data-id'))));
   });
 
   onSnapshot(settingsRef, (snap) => {
@@ -928,6 +1056,17 @@
       adminSignInBtn.hidden = false;
       adminSignOutBtn.hidden = true;
     }
+
+    if (isAdmin && !unsubReceipts) {
+      unsubReceipts = onSnapshot(receiptsCol, (snap) => {
+        const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.uploadedAt || 0) - (b.uploadedAt || 0));
+        renderReceipts(docs);
+      }, (err) => console.error(err));
+    } else if (!isAdmin && unsubReceipts) {
+      unsubReceipts();
+      unsubReceipts = null;
+    }
+
     render();
   });
 
