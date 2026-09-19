@@ -629,6 +629,13 @@
 
   function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
+  function toWhatsAppPhone(raw) {
+    let digits = String(raw || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length <= 11) digits = '55' + digits;
+    return digits;
+  }
+
   function render() {
     const confirmed = sumCategory('confirmed');
     const waitlist = sumCategory('waitlist');
@@ -737,7 +744,7 @@
   }
 
   function openChargeToGuest(g) {
-    const phone = (g.phone || '').replace(/\D/g, '');
+    const phone = toWhatsAppPhone(g.phone);
     const url = (phone ? 'https://wa.me/' + phone : 'https://wa.me/') + '?text=' + encodeURIComponent(buildGuestPixMessage(g));
     window.open(url, '_blank', 'noopener');
   }
@@ -784,7 +791,7 @@
       if (!field) return;
       let value = e.target.value;
       if (field === 'adults' || field === 'children') value = Math.max(0, Number(value) || 0);
-      if (field === 'phone') value = value.replace(/\D/g, '');
+      if (field === 'phone') value = toWhatsAppPhone(value);
       safeWrite(() => updateDoc(doc(guestsCol, id), { [field]: value }));
     });
 
@@ -810,7 +817,7 @@
       if (writesBlocked) return;
       const form = e.target;
       const family = form.family.value.trim();
-      const phone = form.phone.value.replace(/\D/g, '');
+      const phone = toWhatsAppPhone(form.phone.value);
       const adults = Math.max(0, Number(form.adults.value) || 0);
       const children = Math.max(0, Number(form.children.value) || 0);
       if (!family || adults + children === 0) return;
@@ -861,7 +868,7 @@
     e.preventDefault();
     document.getElementById('rsvpError').hidden = true;
     const name = document.getElementById('rsvpName').value.trim();
-    const phone = document.getElementById('rsvpPhone').value.replace(/\D/g, '');
+    const phone = toWhatsAppPhone(document.getElementById('rsvpPhone').value);
     const adults = Math.max(1, Number(document.getElementById('rsvpAdults').value) || 1);
     const children = Math.max(0, Number(document.getElementById('rsvpChildren').value) || 0);
     if (!name || !phone) return;
