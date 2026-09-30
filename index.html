@@ -447,7 +447,8 @@
           <span class="pix-key" id="pixKeyText">741deafb-f688-41c2-86c3-925160f22029</span>
           <button type="button" class="btn-copy" data-copy="741deafb-f688-41c2-86c3-925160f22029">Copiar chave</button>
         </div>
-        <div class="pix-note">Chave aleatória (InfinitePay). Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos já liberados: comece a pagar até 10/10/2026; se preferir parcelar no cartão de crédito (com taxa), é só chamar o Vinição.</div>
+        <div class="pix-note">Chave aleatória (InfinitePay). Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos já liberados: comece a pagar até 10/10/2026.</div>
+        <div class="pix-note">Pode parcelar em 2x pelo Pix, na mesma chave: <b>50% até 10/10/2026</b> e <b>50% até 10/11/2026</b>. Prefere cartão de crédito parcelado (com taxa)? É só chamar o Vinição.</div>
       </div>
     </div>
   </div>
@@ -604,6 +605,8 @@
   const CHILD_PRICE = 0;
   const CHILD_FREE_AGE = 15;
   const PAYMENT_DEADLINE = '10 de outubro de 2026';
+  const INSTALLMENT_1_DATE = '10/10/2026';
+  const INSTALLMENT_2_DATE = '10/11/2026';
   const PIX_KEY = '741deafb-f688-41c2-86c3-925160f22029';
   const PIX_RECEIVER = 'Vinicius Fernandes de Oliveira';
   const CATS = ['confirmed', 'waitlist'];
@@ -745,6 +748,7 @@
       'Total a pagar: ' + fmtMoney(value) + '\n\n' +
       'Pagamentos já estão liberados — comece a pagar até ' + PAYMENT_DEADLINE + '.\n\n' +
       'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
+      'Também pode parcelar em 2x pelo Pix, na mesma chave: ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_1_DATE + ' e ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_2_DATE + '.\n\n' +
       'Caso prefira parcelar no cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
       'Qualquer dúvida é só chamar!';
   }
@@ -906,7 +910,8 @@
                     '<span class="pix-key">' + PIX_KEY + '</span>' +
                     '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
                   '</div>' +
-                  '<div class="pix-note">Comece a pagar até <b>' + PAYMENT_DEADLINE + '</b>. Crianças até 15 anos não pagam.</div>' +
+                  '<div class="pix-note">Pode parcelar em 2x: <b class="mono">' + fmtMoney(totalValue / 2) + '</b> até <b>' + INSTALLMENT_1_DATE + '</b> e <b class="mono">' + fmtMoney(totalValue / 2) + '</b> até <b>' + INSTALLMENT_2_DATE + '</b> — mesma chave Pix.</div>' +
+                  '<div class="pix-note">Crianças até 15 anos não pagam.</div>' +
                 '</div>' +
               '</div>' +
               '<button type="button" class="btn-rsvp" data-action="goto-receipt" data-name="' + escapeAttr(name) + '" style="margin-top:10px">Já paguei — enviar comprovante</button>' +
