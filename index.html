@@ -223,6 +223,8 @@
 
   .cap-max { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); }
   .cap-max b { color: var(--ink); font-family: 'JetBrains Mono', monospace; }
+  .cap-note { margin-top: 8px; font-size: 13px; color: var(--ink-faint); }
+  .cap-note b { color: var(--ink); font-family: 'JetBrains Mono', monospace; }
 
   .meter-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
   .meter-figure .num { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 600; line-height: 1; }
@@ -387,7 +389,7 @@
         <input type="number" id="rsvpAdults" name="rsvpAdults" min="1" value="1">
       </div>
       <div class="rsvp-field num">
-        <label for="rsvpChildren">Crianças</label>
+        <label for="rsvpChildren">Crianças (até 15 anos)</label>
         <input type="number" id="rsvpChildren" name="rsvpChildren" min="0" value="0">
       </div>
       <button type="submit" class="btn-rsvp" id="rsvpSubmitBtn">Vou participar</button>
@@ -400,8 +402,8 @@
     <div class="ticket-panel">
       <div class="panel-label">O que inclui</div>
       <div class="price-list">
-        <div class="price-row"><span class="who">Adulto</span><span class="val mono">R$ 150</span></div>
-        <div class="price-row"><span class="who">Criança</span><span class="val mono">R$ 100</span></div>
+        <div class="price-row"><span class="who">Adulto (16+)</span><span class="val mono">R$ 150</span></div>
+        <div class="price-row"><span class="who">Criança (até 15 anos)</span><span class="val mono">Grátis</span></div>
       </div>
       <ul class="included">
         <li>Buffet de churrasco</li>
@@ -410,6 +412,7 @@
         <li>Brinquedo / estrutura para as crianças</li>
       </ul>
       <div class="cap-max">Capacidade máxima do salão: <b>80 pessoas</b></div>
+      <div class="cap-note">Pagamentos abrem a partir de <b>10 de outubro de 2026</b> — aceita cartão de crédito parcelado (com taxa).</div>
     </div>
     <div class="ticket-perf"></div>
     <div class="ticket-panel">
@@ -444,7 +447,7 @@
           <span class="pix-key" id="pixKeyText">741deafb-f688-41c2-86c3-925160f22029</span>
           <button type="button" class="btn-copy" data-copy="741deafb-f688-41c2-86c3-925160f22029">Copiar chave</button>
         </div>
-        <div class="pix-note">Chave aleatória (InfinitePay). O valor é conforme sua confirmação acima — adulto R$150, criança R$100.</div>
+        <div class="pix-note">Chave aleatória (InfinitePay). Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos abrem a partir de 10/10/2026; se preferir parcelar no cartão de crédito (com taxa), é só chamar o Vinição.</div>
       </div>
     </div>
   </div>
@@ -519,7 +522,7 @@
         <input type="text" name="family" placeholder="Nome da família ou convidado" required>
         <input type="tel" name="phone" placeholder="WhatsApp (DDD + número)" inputmode="numeric">
         <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
-        <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
+        <div class="num-field"><label>Crianças (até 15)</label><input type="number" name="children" min="0" value="0"></div>
         <button type="submit" class="btn-add">Adicionar</button>
       </form>
     </div>
@@ -544,7 +547,7 @@
         <input type="text" name="family" placeholder="Nome da família ou convidado" required>
         <input type="tel" name="phone" placeholder="WhatsApp (DDD + número)" inputmode="numeric">
         <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
-        <div class="num-field"><label>Crianças</label><input type="number" name="children" min="0" value="0"></div>
+        <div class="num-field"><label>Crianças (até 15)</label><input type="number" name="children" min="0" value="0"></div>
         <button type="submit" class="btn-add">Adicionar</button>
       </form>
     </div>
@@ -598,7 +601,9 @@
 
   const CAPACITY = 80;
   const ADULT_PRICE = 150;
-  const CHILD_PRICE = 100;
+  const CHILD_PRICE = 0;
+  const CHILD_FREE_AGE = 15;
+  const PAYMENT_START_DATE = '10 de outubro de 2026';
   const PIX_KEY = '741deafb-f688-41c2-86c3-925160f22029';
   const PIX_RECEIVER = 'Vinicius Fernandes de Oliveira';
   const CATS = ['confirmed', 'waitlist'];
@@ -736,10 +741,11 @@
   function buildGuestPixMessage(g) {
     const total = guestTotal(g);
     const value = guestValue(g);
-    return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (KiotoBar, 14/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + '.\n\n' +
+    return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (KiotoBar, 14/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + ' (crianças até 15 anos não pagam).\n\n' +
       'Total a pagar: ' + fmtMoney(value) + '\n\n' +
+      'Os pagamentos abrem a partir de ' + PAYMENT_START_DATE + '.\n\n' +
       'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
-      'Caso prefira pagar em cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
+      'Caso prefira parcelar no cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
       'Qualquer dúvida é só chamar!';
   }
 
@@ -755,9 +761,9 @@
     return 'Fala Vinição! Pode gerar o link de cobrança do Churrasco de Final de Ano (KiotoBar, 14/11)?\n\n' +
       'Família/convidado: ' + g.family + '\n' +
       'Adultos: ' + g.adults + ' x R$150\n' +
-      'Crianças: ' + g.children + ' x R$100\n' +
+      'Crianças (até 15 anos, grátis): ' + g.children + '\n' +
       'Total: ' + fmtMoney(value) + ' (' + total + ' pessoa' + (total > 1 ? 's' : '') + ')\n\n' +
-      'Pode gerar o link de cartão de crédito (com taxa)?';
+      'Pode gerar o link de cartão de crédito parcelado (com taxa)?';
   }
 
   function openCardHelp(g, silent) {
@@ -900,10 +906,11 @@
                     '<span class="pix-key">' + PIX_KEY + '</span>' +
                     '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
                   '</div>' +
+                  '<div class="pix-note">Pagamentos abrem a partir de <b>' + PAYMENT_START_DATE + '</b>. Crianças até 15 anos não pagam.</div>' +
                 '</div>' +
               '</div>' +
               '<button type="button" class="btn-rsvp" data-action="goto-receipt" data-name="' + escapeAttr(name) + '" style="margin-top:10px">Já paguei — enviar comprovante</button>' +
-              '<button type="button" class="btn-secondary" data-action="charge-manual" data-name="' + escapeAttr(name) + '" data-adults="' + adults + '" data-children="' + children + '">Prefiro cartão de crédito (com taxa) — falar com Vinição</button>' +
+              '<button type="button" class="btn-secondary" data-action="charge-manual" data-name="' + escapeAttr(name) + '" data-adults="' + adults + '" data-children="' + children + '">Prefiro parcelar no cartão de crédito (com taxa) — falar com Vinição</button>' +
             '</div>';
           successEl.querySelector('[data-action="goto-receipt"]').addEventListener('click', (ev) => {
             const receiptNameInput = document.getElementById('receiptName');
