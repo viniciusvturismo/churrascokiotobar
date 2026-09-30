@@ -355,13 +355,13 @@
     <div class="eyebrow">Controle de presença</div>
     <h1>Churrasco de Final de Ano</h1>
     <div class="meta">
-      <span>14 de novembro de 2026</span>
+      <span>21 de novembro de 2026</span>
       <span class="dot">·</span>
-      <span>KiotoBar</span>
+      <span>Prédio do Fabio Cursino</span>
       <span class="dot">·</span>
       <span>80 lugares</span>
     </div>
-    <p class="lede">Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Convidados da academia confirmam presença abaixo; a lista mostra em tempo real quantos lugares sobram.</p>
+    <p class="lede">Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Convidados da academia confirmam presença abaixo; a lista mostra em tempo real quantos lugares sobram. Endereço exato do prédio em breve.</p>
     <details class="cal-add">
       <summary><span class="plus">+</span> Adicionar à agenda</summary>
       <div class="cal-options">
@@ -412,7 +412,7 @@
         <li>Brinquedo / estrutura para as crianças</li>
       </ul>
       <div class="cap-max">Capacidade máxima do salão: <b>80 pessoas</b></div>
-      <div class="cap-note">Pagamentos abrem a partir de <b>10 de outubro de 2026</b> — aceita cartão de crédito parcelado (com taxa).</div>
+      <div class="cap-note">Pagamentos já liberados — comece a pagar até <b>10 de outubro de 2026</b>. Aceita cartão de crédito parcelado (com taxa).</div>
     </div>
     <div class="ticket-perf"></div>
     <div class="ticket-panel">
@@ -447,7 +447,7 @@
           <span class="pix-key" id="pixKeyText">741deafb-f688-41c2-86c3-925160f22029</span>
           <button type="button" class="btn-copy" data-copy="741deafb-f688-41c2-86c3-925160f22029">Copiar chave</button>
         </div>
-        <div class="pix-note">Chave aleatória (InfinitePay). Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos abrem a partir de 10/10/2026; se preferir parcelar no cartão de crédito (com taxa), é só chamar o Vinição.</div>
+        <div class="pix-note">Chave aleatória (InfinitePay). Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos já liberados: comece a pagar até 10/10/2026; se preferir parcelar no cartão de crédito (com taxa), é só chamar o Vinição.</div>
       </div>
     </div>
   </div>
@@ -554,7 +554,7 @@
   </div>
 
   <footer class="page-footer">
-    <span>Churrasco de Final de Ano · KiotoBar · 14 nov 2026</span>
+    <span>Churrasco de Final de Ano · Prédio do Fabio Cursino · 21 nov 2026</span>
     <span class="sync-note"><i class="sync-dot" id="syncDot"></i><span id="syncLabel">conectando…</span></span>
     <span class="admin-bar">
       <span class="admin-email" id="adminEmail" hidden></span>
@@ -603,7 +603,7 @@
   const ADULT_PRICE = 150;
   const CHILD_PRICE = 0;
   const CHILD_FREE_AGE = 15;
-  const PAYMENT_START_DATE = '10 de outubro de 2026';
+  const PAYMENT_DEADLINE = '10 de outubro de 2026';
   const PIX_KEY = '741deafb-f688-41c2-86c3-925160f22029';
   const PIX_RECEIVER = 'Vinicius Fernandes de Oliveira';
   const CATS = ['confirmed', 'waitlist'];
@@ -741,9 +741,9 @@
   function buildGuestPixMessage(g) {
     const total = guestTotal(g);
     const value = guestValue(g);
-    return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (KiotoBar, 14/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + ' (crianças até 15 anos não pagam).\n\n' +
+    return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (Prédio do Fabio Cursino, 21/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + ' (crianças até 15 anos não pagam).\n\n' +
       'Total a pagar: ' + fmtMoney(value) + '\n\n' +
-      'Os pagamentos abrem a partir de ' + PAYMENT_START_DATE + '.\n\n' +
+      'Pagamentos já estão liberados — comece a pagar até ' + PAYMENT_DEADLINE + '.\n\n' +
       'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
       'Caso prefira parcelar no cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
       'Qualquer dúvida é só chamar!';
@@ -758,7 +758,7 @@
   function buildCardHelpMessage(g) {
     const total = guestTotal(g);
     const value = guestValue(g);
-    return 'Fala Vinição! Pode gerar o link de cobrança do Churrasco de Final de Ano (KiotoBar, 14/11)?\n\n' +
+    return 'Fala Vinição! Pode gerar o link de cobrança do Churrasco de Final de Ano (Prédio do Fabio Cursino, 21/11)?\n\n' +
       'Família/convidado: ' + g.family + '\n' +
       'Adultos: ' + g.adults + ' x R$150\n' +
       'Crianças (até 15 anos, grátis): ' + g.children + '\n' +
@@ -906,7 +906,7 @@
                     '<span class="pix-key">' + PIX_KEY + '</span>' +
                     '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
                   '</div>' +
-                  '<div class="pix-note">Pagamentos abrem a partir de <b>' + PAYMENT_START_DATE + '</b>. Crianças até 15 anos não pagam.</div>' +
+                  '<div class="pix-note">Comece a pagar até <b>' + PAYMENT_DEADLINE + '</b>. Crianças até 15 anos não pagam.</div>' +
                 '</div>' +
               '</div>' +
               '<button type="button" class="btn-rsvp" data-action="goto-receipt" data-name="' + escapeAttr(name) + '" style="margin-top:10px">Já paguei — enviar comprovante</button>' +
@@ -1095,12 +1095,12 @@
   });
 
   (function setupCalendarLinks() {
-    const TITLE = 'Churrasco de Final de Ano — KiotoBar';
-    const DETAILS = 'Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Buffet de churrasco, chopp, bebidas não alcoólicas e estrutura para as crianças.';
-    const LOCATION = 'Rua Ribeiro Guimarães, 80 - Churrasqueira, KiotoBar';
-    // 14/11/2026, 12:00–17:00 horário de Brasília (UTC-3) = 15:00–20:00 UTC
-    const START_UTC = '20261114T150000Z';
-    const END_UTC = '20261114T200000Z';
+    const TITLE = 'Churrasco de Final de Ano — Kioto Bar';
+    const DETAILS = 'Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Buffet de churrasco, chopp, bebidas não alcoólicas e estrutura para as crianças. Endereço exato do prédio em breve.';
+    const LOCATION = 'Prédio do Fabio Cursino (endereço a confirmar)';
+    // 21/11/2026, 12:00–17:00 horário de Brasília (UTC-3) = 15:00–20:00 UTC
+    const START_UTC = '20261121T150000Z';
+    const END_UTC = '20261121T200000Z';
 
     const gcalUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
       + '&text=' + encodeURIComponent(TITLE)
