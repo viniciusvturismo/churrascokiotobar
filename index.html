@@ -284,6 +284,9 @@
   .pill { font-family: 'Karla', sans-serif; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; border: none; cursor: pointer; white-space: nowrap; }
   .pill-good { background: var(--good-tint); color: var(--good); }
   .pill-neutral { background: var(--neutral-tint); color: var(--ink-soft); }
+  .pill-warn { background: var(--warn-tint); color: var(--warn); }
+  .cell-num.money { width: 84px; }
+  .tile .tile-sub { font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; }
   .pill-charge { background: var(--secondary-tint); color: var(--secondary); }
   .pill:hover { filter: brightness(0.96); }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pill:hover { filter: brightness(1.15); } }
@@ -475,7 +478,7 @@
     <div class="list-head">
       <div>
         <h2>Comprovantes recebidos</h2>
-        <div class="sub">Confira o arquivo e marque a pessoa como "Pago" na lista abaixo.</div>
+        <div class="sub">Confira o arquivo e registre o valor pago na lista abaixo.</div>
       </div>
       <div class="list-tally" id="receiptsTally"></div>
     </div>
@@ -498,11 +501,11 @@
 
   <div class="tiles admin-col">
     <div class="tile"><div class="tile-label">Confirmados</div><div class="tile-val" id="tileTotalPeople">0</div></div>
-    <div class="tile"><div class="tile-label">Pagos</div><div class="tile-val" id="tileConfirmed">0</div></div>
-    <div class="tile"><div class="tile-label">Valor pago</div><div class="tile-val" id="tileValueConfirmed">R$ 0</div></div>
     <div class="tile"><div class="tile-label">Valor previsto</div><div class="tile-val" id="tileValueTotal">R$ 0</div></div>
+    <div class="tile"><div class="tile-label">Valor recebido</div><div class="tile-val" id="tileValueConfirmed">R$ 0</div><div class="tile-sub" id="tilePaidSub"></div></div>
+    <div class="tile"><div class="tile-label">Falta receber</div><div class="tile-val" id="tileRemaining">R$ 0</div></div>
   </div>
-  <div class="admin-banner admin-col">Modo organizador ativo — você pode editar a lista, marcar pagamentos e mover pessoas entre as listas.</div>
+  <div class="admin-banner admin-col">Modo organizador ativo — você pode editar a lista, registrar o valor pago por pessoa e mover pessoas entre as listas.</div>
 
   <div class="list-section" data-category="confirmed">
     <div class="list-head">
@@ -515,7 +518,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th class="admin-col">Pago (R$)</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -540,7 +543,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th class="admin-col">Pago (R$)</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -622,6 +625,16 @@
   function guestValue(g) { return g.adults * ADULT_PRICE + g.children * CHILD_PRICE; }
   function guestTotal(g) { return g.adults + g.children; }
 
+  function payInfo(g) {
+    const value = guestValue(g);
+    const paid = g.paidAmount == null ? (g.confirmed ? value : 0) : g.paidAmount;
+    const remaining = Math.max(0, value - paid);
+    const status = value <= 0 ? 'free' : paid >= value ? 'paid' : paid > 0 ? 'partial' : 'pending';
+    return { value, paid, remaining, status };
+  }
+  const PAY_LABEL = { paid: 'Pago', partial: 'Parcial', pending: 'Aguardando pagamento', free: 'Isento' };
+  const PAY_CLASS = { paid: 'pill-good', partial: 'pill-warn', pending: 'pill-neutral', free: 'pill-neutral' };
+
   function sumCategory(cat) {
     const rows = guests.filter(g => g.category === cat);
     return rows.reduce((acc, g) => {
@@ -630,9 +643,12 @@
       acc.children += g.children;
       acc.total += guestTotal(g);
       acc.value += guestValue(g);
-      if (g.confirmed) { acc.confirmedTotal += guestTotal(g); acc.confirmedValue += guestValue(g); }
+      const pi = payInfo(g);
+      acc.paid += pi.paid; acc.remaining += pi.remaining;
+      if (pi.status === 'paid') acc.paidCount++;
+      if (pi.status === 'partial') acc.partialCount++;
       return acc;
-    }, { count: 0, adults: 0, children: 0, total: 0, value: 0, confirmedTotal: 0, confirmedValue: 0 });
+    }, { count: 0, adults: 0, children: 0, total: 0, value: 0, paid: 0, remaining: 0, paidCount: 0, partialCount: 0 });
   }
 
   function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
@@ -674,8 +690,9 @@
     }
 
     document.getElementById('tileTotalPeople').textContent = confirmed.total;
-    document.getElementById('tileConfirmed').textContent = confirmed.confirmedTotal;
-    document.getElementById('tileValueConfirmed').textContent = fmtMoney(confirmed.confirmedValue);
+    document.getElementById('tileValueConfirmed').textContent = fmtMoney(confirmed.paid);
+    document.getElementById('tilePaidSub').textContent = confirmed.paidCount + ' quitado(s) · ' + confirmed.partialCount + ' parcial(is)';
+    document.getElementById('tileRemaining').textContent = fmtMoney(confirmed.remaining);
     document.getElementById('tileValueTotal').textContent = fmtMoney(confirmed.value);
 
     const vinicaoInput = document.getElementById('inputVinicao');
@@ -699,7 +716,7 @@
     tally.innerHTML = '<b>' + sum.count + '</b> famílias · <b>' + sum.total + '</b> pessoas · <b>' + fmtMoney(sum.value) + '</b>';
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 10 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 11 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
       return;
     }
 
@@ -707,6 +724,7 @@
       tbody.innerHTML = rows.map(g => {
         const total = guestTotal(g);
         const value = guestValue(g);
+        const pi = payInfo(g);
         return '' +
           '<tr>' +
             '<td>' + escapeAttr(g.family) + '</td>' +
@@ -714,7 +732,7 @@
             '<td class="mono">' + g.children + '</td>' +
             '<td class="cell-total mono">' + total + '</td>' +
             '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
-            '<td><span class="status-badge ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '">' + (g.confirmed ? 'Pago' : 'Aguardando pagamento') + '</span></td>' +
+            '<td><span class="status-badge ' + PAY_CLASS[pi.status] + '">' + PAY_LABEL[pi.status] + '</span></td>' +
           '</tr>';
       }).join('');
       return;
@@ -723,6 +741,7 @@
     tbody.innerHTML = rows.map(g => {
       const total = guestTotal(g);
       const value = guestValue(g);
+      const pi = payInfo(g);
       const dis = writesBlocked ? ' disabled' : '';
       const catOptions = CATS.map(c => '<option value="' + c + '"' + (c === g.category ? ' selected' : '') + '>' + CAT_LABEL[c] + '</option>').join('');
       return '' +
@@ -733,7 +752,8 @@
           '<td><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
           '<td class="cell-total mono">' + total + '</td>' +
           '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
-          '<td><button class="pill ' + (g.confirmed ? 'pill-good' : 'pill-neutral') + '" data-action="toggle-confirmed"' + dis + '>' + (g.confirmed ? 'Pago' : 'Aguardando pagamento') + '</button></td>' +
+          '<td class="admin-col"><input class="cell-num money" type="number" min="0" step="any" data-field="paidAmount" value="' + pi.paid + '"' + dis + '></td>' +
+          '<td><button class="pill ' + PAY_CLASS[pi.status] + '" data-action="toggle-confirmed" title="Clique para quitar tudo / zerar"' + dis + '>' + PAY_LABEL[pi.status] + (pi.status === 'partial' ? ' · falta ' + fmtMoney(pi.remaining) : '') + '</button></td>' +
           '<td class="admin-col"><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
           '<td class="admin-col"><button class="pill pill-charge" data-action="charge" title="Enviar mensagem de cobrança (Pix) para o responsável da reserva">Cobrar</button></td>' +
           '<td class="admin-col"><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
@@ -744,11 +764,15 @@
   function buildGuestPixMessage(g) {
     const total = guestTotal(g);
     const value = guestValue(g);
+    const pi = payInfo(g);
     return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (Prédio do Fabio Cursino, 21/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + ' (crianças até 15 anos não pagam).\n\n' +
-      'Total a pagar: ' + fmtMoney(value) + '\n\n' +
-      'Pagamentos já estão liberados — comece a pagar até ' + PAYMENT_DEADLINE + '.\n\n' +
-      'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
-      'Também pode parcelar em 2x pelo Pix, na mesma chave: ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_1_DATE + ' e ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_2_DATE + '.\n\n' +
+      (pi.paid > 0 && pi.remaining > 0
+        ? 'Total: ' + fmtMoney(value) + '\nJá recebemos: ' + fmtMoney(pi.paid) + '\nFalta pagar: ' + fmtMoney(pi.remaining) + '\n\n' +
+          'O restante pode ser pago pelo Pix, na mesma chave, até ' + INSTALLMENT_2_DATE + ':\n' + PIX_KEY + ' (' + PIX_RECEIVER + ')\n\n'
+        : 'Total a pagar: ' + fmtMoney(value) + '\n\n' +
+          'Pagamentos já estão liberados — comece a pagar até ' + PAYMENT_DEADLINE + '.\n\n' +
+          'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
+          'Também pode parcelar em 2x pelo Pix, na mesma chave: ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_1_DATE + ' e ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_2_DATE + '.\n\n') +
       'Caso prefira parcelar no cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
       'Qualquer dúvida é só chamar!';
   }
@@ -802,6 +826,13 @@
       let value = e.target.value;
       if (field === 'adults' || field === 'children') value = Math.max(0, Number(value) || 0);
       if (field === 'phone') value = toWhatsAppPhone(value);
+      if (field === 'paidAmount') {
+        value = Math.round(Math.max(0, Number(value) || 0) * 100) / 100;
+        const gp = guests.find(x => x.id === id);
+        const full = !!gp && guestValue(gp) > 0 && value >= guestValue(gp);
+        safeWrite(() => updateDoc(doc(guestsCol, id), { paidAmount: value, confirmed: full }));
+        return;
+      }
       safeWrite(() => updateDoc(doc(guestsCol, id), { [field]: value }));
     });
 
@@ -813,7 +844,9 @@
       const g = guests.find(x => x.id === id);
       if (!g) return;
       if (action === 'toggle-confirmed') {
-        safeWrite(() => updateDoc(doc(guestsCol, id), { confirmed: !g.confirmed }));
+        const pi = payInfo(g);
+        const fullPaid = pi.status === 'paid';
+        safeWrite(() => updateDoc(doc(guestsCol, id), fullPaid ? { paidAmount: 0, confirmed: false } : { paidAmount: pi.value, confirmed: true }));
       } else if (action === 'delete') {
         if (!confirm('Remover "' + g.family + '" da lista?')) return;
         safeWrite(() => deleteDoc(doc(guestsCol, id)));
@@ -831,7 +864,7 @@
       const adults = Math.max(0, Number(form.adults.value) || 0);
       const children = Math.max(0, Number(form.children.value) || 0);
       if (!family || adults + children === 0) return;
-      safeWrite(() => addDoc(guestsCol, { family, phone, adults, children, confirmed: false, category: cat, createdAt: Date.now() }));
+      safeWrite(() => addDoc(guestsCol, { family, phone, adults, children, confirmed: false, paidAmount: 0, category: cat, createdAt: Date.now() }));
       form.reset();
       form.adults.value = 1;
       form.children.value = 0;
@@ -888,7 +921,7 @@
     const targetCat = (confirmed.total + newTotal <= CAPACITY) ? 'confirmed' : 'waitlist';
     const totalValue = adults * ADULT_PRICE + children * CHILD_PRICE;
 
-    safeWrite(() => addDoc(guestsCol, { family: name, phone, adults, children, confirmed: false, category: targetCat, createdAt: Date.now() }))
+    safeWrite(() => addDoc(guestsCol, { family: name, phone, adults, children, confirmed: false, paidAmount: 0, category: targetCat, createdAt: Date.now() }))
       .then(() => {
         const successEl = document.getElementById('rsvpSuccess');
         if (writesBlocked) {
@@ -1044,6 +1077,7 @@
         adults: typeof data.adults === 'number' ? data.adults : 0,
         children: typeof data.children === 'number' ? data.children : 0,
         confirmed: !!data.confirmed,
+        paidAmount: typeof data.paidAmount === 'number' ? data.paidAmount : null,
         category: CATS.includes(data.category) ? data.category : (LEGACY_CAT[data.category] || 'confirmed'),
         createdAt: typeof data.createdAt === 'number' ? data.createdAt : 0
       };
