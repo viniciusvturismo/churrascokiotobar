@@ -297,7 +297,31 @@
   .icon-btn { background: transparent; border: none; color: var(--ink-faint); font-size: 17px; line-height: 1; cursor: pointer; padding: 4px 7px; border-radius: 6px; }
   .icon-btn:hover { color: var(--accent); background: var(--accent-tint); }
 
+
+  tbody td { padding: 8px 10px; }
+  .cell-text[data-field="phone"] { min-width: 120px; }
+  body.cards .table-scroll { overflow-x: visible; }
+  body.cards table { min-width: 0; display: block; }
+  body.cards thead { display: none; }
+  body.cards tbody { display: block; }
+  body.cards tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  body.cards tbody tr:last-child { border-bottom: none; }
+  body.cards tbody tr:hover { background: none; }
+  body.cards tbody td { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 0; border: 0; min-width: 0; }
+  body.cards tbody td::before { content: attr(data-label); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
+  body.cards tbody td[data-label=""]::before { display: none; }
+  body.cards tbody td[data-label="Família"] { grid-column: 1 / -1; font-size: 15.5px; font-weight: 700; }
+  body.cards tbody td[data-label="Família"]::before { display: none; }
+  body.cards tbody td[data-label="Pagamento"] { grid-column: span 2; }
+  body.cards.is-admin tbody td[data-label="Pagamento"] { grid-column: 1 / -1; }
+  body.cards tbody td[data-label="Telefone"] { grid-column: 1 / -1; }
+  body.cards tbody td .cell-text, body.cards tbody td .cell-num, body.cards tbody td .cell-num.money, body.cards tbody td select.cat-select { width: 100%; text-align: left; border-color: var(--line-strong); background: var(--surface); }
+  body.cards tbody td .icon-btn { align-self: flex-end; }
+  body.cards tbody td select.cat-select { padding: 6px 2px; font-size: 12px; }
   .empty-row td { padding: 22px 14px; color: var(--ink-faint); font-size: 13.5px; font-style: italic; text-align: center; }
+  body.cards .empty-row td { display: block; grid-column: 1 / -1; padding: 8px 0; }
+  body.cards .empty-row td::before { display: none; }
+  body.cards .list-tally { white-space: normal; text-align: left; }
 
   .add-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px; background: var(--surface-2); border-top: 1px solid var(--line); }
   .add-form input[type="text"], .add-form input[type="tel"] { flex: 1 1 200px; min-width: 140px; font-size: 14px; padding: 8px 11px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font-family: inherit; }
@@ -697,6 +721,7 @@
     if (document.activeElement !== vinicaoInput) vinicaoInput.value = settings.vinicaoPhone || '';
 
     document.body.classList.toggle('is-admin', isAdmin);
+    document.body.classList.toggle('cards', window.innerWidth <= (isAdmin ? 1180 : 820));
 
     const sums = { confirmed, waitlist };
     CATS.forEach(cat => renderSection(cat, sums[cat]));
@@ -725,12 +750,12 @@
         const pi = payInfo(g);
         return '' +
           '<tr>' +
-            '<td>' + escapeAttr(g.family) + '</td>' +
-            '<td class="mono">' + g.adults + '</td>' +
-            '<td class="mono">' + g.children + '</td>' +
-            '<td class="cell-total mono">' + total + '</td>' +
-            '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
-            '<td><span class="status-badge ' + PAY_CLASS[pi.status] + '">' + PAY_LABEL[pi.status] + '</span></td>' +
+            '<td data-label="Família">' + escapeAttr(g.family) + '</td>' +
+            '<td class="mono" data-label="Adultos">' + g.adults + '</td>' +
+            '<td class="mono" data-label="Crianças">' + g.children + '</td>' +
+            '<td class="cell-total mono" data-label="Total">' + total + '</td>' +
+            '<td class="cell-value mono" data-label="Valor">' + fmtMoney(value) + '</td>' +
+            '<td data-label="Pagamento"><span class="status-badge ' + PAY_CLASS[pi.status] + '">' + PAY_LABEL[pi.status] + '</span></td>' +
           '</tr>';
       }).join('');
       return;
@@ -744,17 +769,17 @@
       const catOptions = CATS.map(c => '<option value="' + c + '"' + (c === g.category ? ' selected' : '') + '>' + CAT_LABEL[c] + '</option>').join('');
       return '' +
         '<tr data-id="' + g.id + '">' +
-          '<td><input class="cell-text" data-field="family" value="' + escapeAttr(g.family) + '"' + dis + '></td>' +
-          '<td class="admin-col"><input class="cell-text" data-field="phone" value="' + escapeAttr(g.phone || '') + '" placeholder="DDD+número"' + dis + '></td>' +
-          '<td><input class="cell-num" type="number" min="0" data-field="adults" value="' + g.adults + '"' + dis + '></td>' +
-          '<td><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
-          '<td class="cell-total mono">' + total + '</td>' +
-          '<td class="cell-value mono">' + fmtMoney(value) + '</td>' +
-          '<td class="admin-col"><input class="cell-num money" type="number" min="0" step="any" data-field="paidAmount" value="' + pi.paid + '"' + dis + '></td>' +
-          '<td><button class="pill ' + PAY_CLASS[pi.status] + '" data-action="toggle-confirmed" title="Clique para quitar tudo / zerar"' + dis + '>' + PAY_LABEL[pi.status] + (pi.status === 'partial' ? ' · falta ' + fmtMoney(pi.remaining) : '') + '</button></td>' +
-          '<td class="admin-col"><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
-          '<td class="admin-col"><button class="pill pill-charge" data-action="charge" title="Enviar mensagem de cobrança (Pix) para o responsável da reserva">Cobrar</button></td>' +
-          '<td class="admin-col"><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
+          '<td data-label="Família"><input class="cell-text" data-field="family" value="' + escapeAttr(g.family) + '"' + dis + '></td>' +
+          '<td class="admin-col" data-label="Telefone"><input class="cell-text" data-field="phone" value="' + escapeAttr(g.phone || '') + '" placeholder="DDD+número"' + dis + '></td>' +
+          '<td data-label="Adultos"><input class="cell-num" type="number" min="0" data-field="adults" value="' + g.adults + '"' + dis + '></td>' +
+          '<td data-label="Crianças"><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
+          '<td class="cell-total mono" data-label="Total">' + total + '</td>' +
+          '<td class="cell-value mono" data-label="Valor">' + fmtMoney(value) + '</td>' +
+          '<td class="admin-col" data-label="Pago (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="paidAmount" value="' + pi.paid + '"' + dis + '></td>' +
+          '<td data-label="Pagamento"><button class="pill ' + PAY_CLASS[pi.status] + '" data-action="toggle-confirmed" title="Clique para quitar tudo / zerar"' + dis + '>' + PAY_LABEL[pi.status] + (pi.status === 'partial' ? ' · falta ' + fmtMoney(pi.remaining) : '') + '</button></td>' +
+          '<td class="admin-col" data-label="Lista"><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
+          '<td class="admin-col" data-label="Cobrança"><button class="pill pill-charge" data-action="charge" title="Enviar mensagem de cobrança (Pix) para o responsável da reserva">Cobrar</button></td>' +
+          '<td class="admin-col" data-label=""><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
         '</tr>';
     }).join('');
   }
@@ -1087,6 +1112,8 @@
     document.getElementById('syncDot').classList.add('off');
     document.getElementById('syncLabel').textContent = 'sem conexão com o banco';
   });
+
+  window.addEventListener('resize', () => render());
 
   render();
 
