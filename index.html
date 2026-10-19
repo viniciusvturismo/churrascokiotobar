@@ -97,6 +97,15 @@
 
   .wrap { max-width: 1040px; margin: 0 auto; }
   body.is-admin .wrap { max-width: 1360px; }
+  body.is-admin:not(.cards) tbody td { padding: 6px 6px; }
+  body.is-admin:not(.cards) thead th { padding: 10px 6px; }
+  body.is-admin:not(.cards) .cell-text { min-width: 0; padding: 6px 5px; }
+  body.is-admin:not(.cards) .cell-text[data-field="family"] { width: 150px; }
+  body.is-admin:not(.cards) .cell-text[data-field="phone"] { width: 122px; min-width: 0; }
+  body.is-admin:not(.cards) .cell-num { width: 46px; }
+  body.is-admin:not(.cards) .cell-num.money { width: 72px; }
+  body.is-admin:not(.cards) select.cat-select { width: 92px; padding: 5px 2px; }
+  body.is-admin:not(.cards) table { min-width: 0; }
   .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
   h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; text-wrap: balance; margin: 0; }
 
@@ -549,7 +558,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th class="admin-col">Pago (R$)</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th class="admin-col">Pago (R$)</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -574,7 +583,7 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th class="admin-col">Pago (R$)</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col">Cobrança</th><th class="admin-col"></th></tr></thead>
+          <thead><tr><th>Família / Convidado</th><th class="admin-col">Telefone</th><th>Adultos</th><th>Crianças</th><th>Total</th><th>Valor</th><th class="admin-col">Pago (R$)</th><th>Pagamento</th><th class="admin-col">Lista</th><th class="admin-col"></th></tr></thead>
           <tbody data-tbody></tbody>
         </table>
       </div>
@@ -729,7 +738,7 @@
     if (document.activeElement !== vinicaoInput) vinicaoInput.value = settings.vinicaoPhone || '';
 
     document.body.classList.toggle('is-admin', isAdmin);
-    document.body.classList.toggle('cards', window.innerWidth <= (isAdmin ? 1300 : 820));
+    document.body.classList.toggle('cards', window.innerWidth <= (isAdmin ? 1080 : 820));
 
     const sums = { confirmed, waitlist };
     CATS.forEach(cat => renderSection(cat, sums[cat]));
@@ -747,7 +756,7 @@
     tally.innerHTML = '<b>' + sum.count + '</b> famílias · <b>' + sum.total + '</b> pessoas · <b>' + fmtMoney(sum.value) + '</b>';
 
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 11 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 10 : 6) + '">Nenhuma família nesta lista ainda</td></tr>';
       return;
     }
 
@@ -784,34 +793,11 @@
           '<td class="cell-total mono" data-label="Total">' + total + '</td>' +
           '<td class="cell-value mono" data-label="Valor">' + fmtMoney(value) + '</td>' +
           '<td class="admin-col" data-label="Pago (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="paidAmount" value="' + pi.paid + '"' + dis + '></td>' +
-          '<td data-label="Pagamento"><button class="pill ' + PAY_CLASS[pi.status] + '" data-action="toggle-confirmed" title="Clique para quitar tudo / zerar"' + dis + '>' + PAY_LABEL[pi.status] + (pi.status === 'partial' ? ' · falta ' + fmtMoney(pi.remaining) : '') + '</button></td>' +
+          '<td data-label="Pagamento"><button class="pill ' + PAY_CLASS[pi.status] + '" data-action="toggle-confirmed" title="Clique para quitar tudo / zerar"' + dis + '>' + (pi.status === 'pending' ? 'Aguardando' : PAY_LABEL[pi.status]) + (pi.status === 'partial' ? ' · falta ' + fmtMoney(pi.remaining) : '') + '</button></td>' +
           '<td class="admin-col" data-label="Lista"><select class="cat-select" data-field="category"' + dis + '>' + catOptions + '</select></td>' +
-          '<td class="admin-col" data-label="Cobrança"><button class="pill pill-charge" data-action="charge" title="Enviar mensagem de cobrança (Pix) para o responsável da reserva">Cobrar</button></td>' +
           '<td class="admin-col" data-label=""><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
         '</tr>';
     }).join('');
-  }
-
-  function buildGuestPixMessage(g) {
-    const total = guestTotal(g);
-    const value = guestValue(g);
-    const pi = payInfo(g);
-    return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (Prédio do Fabio Cursino, 21/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + ' (crianças até 15 anos não pagam).\n\n' +
-      (pi.paid > 0 && pi.remaining > 0
-        ? 'Total: ' + fmtMoney(value) + '\nJá recebemos: ' + fmtMoney(pi.paid) + '\nFalta pagar: ' + fmtMoney(pi.remaining) + '\n\n' +
-          'O restante pode ser pago pelo Pix, na mesma chave, até ' + INSTALLMENT_2_DATE + ':\n' + PIX_KEY + '\n\n'
-        : 'Total a pagar: ' + fmtMoney(value) + '\n\n' +
-          'Pagamentos já estão liberados — comece a pagar até ' + PAYMENT_DEADLINE + '.\n\n' +
-          'Pode pagar por Pix, chave (e-mail):\n' + PIX_KEY + '\n\n' +
-          'Também pode parcelar em 2x pelo Pix, na mesma chave: ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_1_DATE + ' e ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_2_DATE + '.\n\n') +
-      'Caso prefira parcelar no cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
-      'Qualquer dúvida é só chamar!';
-  }
-
-  function openChargeToGuest(g) {
-    const phone = toWhatsAppPhone(g.phone);
-    const url = (phone ? 'https://wa.me/' + phone : 'https://wa.me/') + '?text=' + encodeURIComponent(buildGuestPixMessage(g));
-    window.open(url, '_blank', 'noopener');
   }
 
   function buildCardHelpMessage(g) {
@@ -881,8 +867,6 @@
       } else if (action === 'delete') {
         if (!confirm('Remover "' + g.family + '" da lista?')) return;
         safeWrite(() => deleteDoc(doc(guestsCol, id)));
-      } else if (action === 'charge') {
-        openChargeToGuest(g);
       }
     });
 
