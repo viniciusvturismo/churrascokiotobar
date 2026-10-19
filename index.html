@@ -443,14 +443,13 @@
   <div class="pix-card">
     <div class="panel-label">Como pagar · PIX</div>
     <div class="pix-body">
-      <img class="pix-qr-img" id="pixQrImg" src="pix-qrcode.png" alt="QR Code Pix">
       <div class="pix-info">
-        <div class="pix-receiver">Transferir Pix para: <b>Vinicius Fernandes de Oliveira</b></div>
+        <div class="pix-receiver">Pague por Pix usando a chave (e-mail):</div>
         <div class="pix-key-row">
-          <span class="pix-key" id="pixKeyText">741deafb-f688-41c2-86c3-925160f22029</span>
-          <button type="button" class="btn-copy" data-copy="741deafb-f688-41c2-86c3-925160f22029">Copiar chave</button>
+          <span class="pix-key" id="pixKeyText">vlyrio@icloud.com</span>
+          <button type="button" class="btn-copy" data-copy="vlyrio@icloud.com">Copiar chave</button>
         </div>
-        <div class="pix-note">Chave aleatória (InfinitePay). Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos já liberados: comece a pagar até 10/10/2026.</div>
+        <div class="pix-note">Chave Pix tipo e-mail. Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos já liberados: comece a pagar até 10/10/2026.</div>
         <div class="pix-note">Pode parcelar em 2x pelo Pix, na mesma chave: <b>50% até 10/10/2026</b> e <b>50% até 10/11/2026</b>. Prefere cartão de crédito parcelado (com taxa)? É só chamar o Vinição.</div>
       </div>
     </div>
@@ -610,8 +609,7 @@
   const PAYMENT_DEADLINE = '10 de outubro de 2026';
   const INSTALLMENT_1_DATE = '10/10/2026';
   const INSTALLMENT_2_DATE = '10/11/2026';
-  const PIX_KEY = '741deafb-f688-41c2-86c3-925160f22029';
-  const PIX_RECEIVER = 'Vinicius Fernandes de Oliveira';
+  const PIX_KEY = 'vlyrio@icloud.com';
   const CATS = ['confirmed', 'waitlist'];
   const CAT_LABEL = { confirmed: 'Confirmada', waitlist: 'Espera' };
   const LEGACY_CAT = { priority: 'confirmed', academia: 'confirmed' };
@@ -768,10 +766,10 @@
     return 'Fala, ' + g.family + '! Sua presença no Churrasco de Final de Ano (Prédio do Fabio Cursino, 21/11) está confirmada — ' + total + ' pessoa' + (total > 1 ? 's' : '') + ' (crianças até 15 anos não pagam).\n\n' +
       (pi.paid > 0 && pi.remaining > 0
         ? 'Total: ' + fmtMoney(value) + '\nJá recebemos: ' + fmtMoney(pi.paid) + '\nFalta pagar: ' + fmtMoney(pi.remaining) + '\n\n' +
-          'O restante pode ser pago pelo Pix, na mesma chave, até ' + INSTALLMENT_2_DATE + ':\n' + PIX_KEY + ' (' + PIX_RECEIVER + ')\n\n'
+          'O restante pode ser pago pelo Pix, na mesma chave, até ' + INSTALLMENT_2_DATE + ':\n' + PIX_KEY + '\n\n'
         : 'Total a pagar: ' + fmtMoney(value) + '\n\n' +
           'Pagamentos já estão liberados — comece a pagar até ' + PAYMENT_DEADLINE + '.\n\n' +
-          'Pode pagar por Pix pra ' + PIX_RECEIVER + ', chave:\n' + PIX_KEY + '\n\n' +
+          'Pode pagar por Pix, chave (e-mail):\n' + PIX_KEY + '\n\n' +
           'Também pode parcelar em 2x pelo Pix, na mesma chave: ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_1_DATE + ' e ' + fmtMoney(value / 2) + ' até ' + INSTALLMENT_2_DATE + '.\n\n') +
       'Caso prefira parcelar no cartão de crédito, solicita aqui nesta mensagem pro Vinição enviar o link (incluirá taxa de cartão).\n\n' +
       'Qualquer dúvida é só chamar!';
@@ -936,9 +934,8 @@
             'Prontinho, ' + escapeAttr(name) + '! ' + newTotal + ' pessoa(s) confirmada(s) na lista — status: aguardando pagamento.' +
             '<div class="payment-panel">' +
               '<div class="pix-body">' +
-                '<img class="pix-qr-img" src="pix-qrcode.png" alt="QR Code Pix">' +
                 '<div class="pix-info">' +
-                  'Total: <b class="mono">' + fmtMoney(totalValue) + '</b> — pague por Pix pra <b>' + PIX_RECEIVER + '</b>:' +
+                  'Total: <b class="mono">' + fmtMoney(totalValue) + '</b> — pague por Pix, chave (e-mail):' +
                   '<div class="pix-key-row">' +
                     '<span class="pix-key">' + PIX_KEY + '</span>' +
                     '<button type="button" class="btn-copy" data-copy="' + PIX_KEY + '">Copiar chave</button>' +
