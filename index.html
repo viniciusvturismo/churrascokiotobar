@@ -458,7 +458,7 @@
         <li>Brinquedo / estrutura para as crianças</li>
       </ul>
       <div class="cap-max">Capacidade máxima do salão: <b>80 pessoas</b></div>
-      <div class="cap-note">Pagamentos já liberados — comece a pagar até <b>10 de outubro de 2026</b>. Aceita cartão de crédito parcelado (com taxa).</div>
+      <div class="cap-note">Pagamentos já liberados — comece a pagar até <b>10 de outubro de 2026</b>.</div>
     </div>
     <div class="ticket-perf"></div>
     <div class="ticket-panel">
@@ -493,7 +493,7 @@
           <button type="button" class="btn-copy" data-copy="vlyrio@icloud.com">Copiar chave</button>
         </div>
         <div class="pix-note">Chave Pix tipo e-mail. Valor conforme sua confirmação — adulto R$150, criança até 15 anos grátis. Pagamentos já liberados: comece a pagar até 10/10/2026.</div>
-        <div class="pix-note">Pode parcelar em 2x pelo Pix, na mesma chave: <b>50% até 10/10/2026</b> e <b>50% até 10/11/2026</b>. Prefere cartão de crédito parcelado (com taxa)? É só chamar o Vinição.</div>
+        <div class="pix-note">Pode parcelar em 2x pelo Pix, na mesma chave: <b>50% até 10/10/2026</b> e <b>50% até 10/11/2026</b>.</div>
       </div>
     </div>
   </div>
@@ -531,13 +531,6 @@
           <tbody id="receiptsBody"></tbody>
         </table>
       </div>
-    </div>
-  </div>
-
-  <div class="settings-bar admin-col">
-    <div class="setting">
-      <label for="inputVinicao">WhatsApp do Vinição</label>
-      <input type="text" id="inputVinicao" placeholder="DDI+DDD+número" inputmode="numeric">
     </div>
   </div>
 
@@ -664,7 +657,6 @@
   const fmtMoney = (n) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   let guests = [];
-  let settings = { vinicaoPhone: '5521981155451' };
   let writesBlocked = false;
 
   function guestValue(g) { return g.adults * ADULT_PRICE + g.children * CHILD_PRICE; }
@@ -740,8 +732,6 @@
     document.getElementById('tileRemaining').textContent = fmtMoney(confirmed.remaining);
     document.getElementById('tileValueTotal').textContent = fmtMoney(confirmed.value);
 
-    const vinicaoInput = document.getElementById('inputVinicao');
-    if (document.activeElement !== vinicaoInput) vinicaoInput.value = settings.vinicaoPhone || '';
 
     document.body.classList.toggle('is-admin', isAdmin);
     document.body.classList.toggle('cards', window.innerWidth <= (isAdmin ? 1080 : 820));
@@ -804,27 +794,6 @@
           '<td class="admin-col" data-label=""><button class="icon-btn" data-action="delete" title="Remover" aria-label="Remover"' + dis + '>×</button></td>' +
         '</tr>';
     }).join('');
-  }
-
-  function buildCardHelpMessage(g) {
-    const total = guestTotal(g);
-    const value = guestValue(g);
-    return 'Fala Vinição! Pode gerar o link de cobrança do Churrasco de Final de Ano (Prédio do Fabio Cursino, 21/11)?\n\n' +
-      'Família/convidado: ' + g.family + '\n' +
-      'Adultos: ' + g.adults + ' x R$150\n' +
-      'Crianças (até 15 anos, grátis): ' + g.children + '\n' +
-      'Total: ' + fmtMoney(value) + ' (' + total + ' pessoa' + (total > 1 ? 's' : '') + ')\n\n' +
-      'Pode gerar o link de cartão de crédito parcelado (com taxa)?';
-  }
-
-  function openCardHelp(g, silent) {
-    const phone = (settings.vinicaoPhone || '').replace(/\D/g, '');
-    if (!phone) {
-      if (!silent) alert('Configure o WhatsApp do Vinição na barra de configurações antes de gerar a cobrança.');
-      return;
-    }
-    const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(buildCardHelpMessage(g));
-    window.open(url, '_blank', 'noopener');
   }
 
   async function safeWrite(fn) {
@@ -890,11 +859,6 @@
       form.adults.value = 1;
       form.children.value = 0;
     });
-  });
-
-  document.getElementById('inputVinicao').addEventListener('change', (e) => {
-    const v = e.target.value.replace(/\D/g, '');
-    safeWrite(() => setDoc(settingsRef, { vinicaoPhone: v }));
   });
 
   const rsvpForm = document.getElementById('rsvpForm');
@@ -968,17 +932,12 @@
                 '</div>' +
               '</div>' +
               '<button type="button" class="btn-rsvp" data-action="goto-receipt" data-name="' + escapeAttr(name) + '" style="margin-top:10px">Já paguei — enviar comprovante</button>' +
-              '<button type="button" class="btn-secondary" data-action="charge-manual" data-name="' + escapeAttr(name) + '" data-adults="' + adults + '" data-children="' + children + '">Prefiro parcelar no cartão de crédito (com taxa) — falar com Vinição</button>' +
             '</div>';
           successEl.querySelector('[data-action="goto-receipt"]').addEventListener('click', (ev) => {
             const receiptNameInput = document.getElementById('receiptName');
             receiptNameInput.value = ev.currentTarget.getAttribute('data-name');
             document.getElementById('receiptForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
             document.getElementById('receiptFile').focus();
-          });
-          successEl.querySelector('[data-action="charge-manual"]').addEventListener('click', (ev) => {
-            const b = ev.currentTarget;
-            openCardHelp({ family: b.getAttribute('data-name'), adults: Number(b.getAttribute('data-adults')), children: Number(b.getAttribute('data-children')) });
           });
           successEl.querySelector('[data-copy]').addEventListener('click', (ev) => {
             copyToClipboard(PIX_KEY).then(() => {
@@ -1071,20 +1030,6 @@
     const tr = e.target.closest('tr[data-id]');
     if (!tr || e.target.getAttribute('data-action') !== 'dismiss-receipt') return;
     safeWrite(() => deleteDoc(doc(receiptsCol, tr.getAttribute('data-id'))));
-  });
-
-  onSnapshot(settingsRef, (snap) => {
-    if (snap.exists()) {
-      const data = snap.data();
-      settings = {
-        vinicaoPhone: (typeof data.vinicaoPhone === 'string' && data.vinicaoPhone) ? data.vinicaoPhone : '5521981155451'
-      };
-    }
-    render();
-  }, (err) => {
-    console.error(err);
-    document.getElementById('syncDot').classList.add('off');
-    document.getElementById('syncLabel').textContent = 'sem conexão com o banco';
   });
 
   onSnapshot(guestsCol, (snap) => {
