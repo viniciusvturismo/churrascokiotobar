@@ -366,6 +366,12 @@
 
   .report-bar { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
   .report-bar .btn-secondary { margin-top: 0; padding: 11px 18px; font-size: 13.5px; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(10, 20, 32, 0.55); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; width: 100%; max-width: 640px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; gap: 12px; padding: 18px; box-shadow: 0 12px 40px var(--shadow); }
+  .modal-box h3 { font-size: 18px; font-weight: 600; }
+  .modal-box textarea { width: 100%; min-height: 260px; flex: 1; resize: vertical; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.5; padding: 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface-2); color: var(--ink); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .modal-actions .btn-secondary { margin-top: 0; }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 600; box-shadow: 0 6px 20px var(--shadow); z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
   .admin-banner {
     margin-top: 16px;
@@ -543,7 +549,7 @@
   </div>
   <div class="report-bar admin-col">
     <button type="button" class="btn-secondary" id="btnExportXlsx">Exportar relatório (Excel)</button>
-    <button type="button" class="btn-secondary" id="btnWaReport">Lista de confirmados e pagos por WhatsApp</button>
+    <button type="button" class="btn-secondary" id="btnWaReport">Lista de confirmados e pagos (texto para copiar)</button>
   </div>
   <div class="admin-banner admin-col">Modo organizador ativo — você pode editar a lista, registrar o valor pago por pessoa e mover pessoas entre as listas.</div>
 
@@ -1243,16 +1249,31 @@
 
   function sendWaReport() {
     const text = buildWaReport();
-    const url = 'https://wa.me/?text=' + encodeURIComponent(text);
-    copyToClipboard(text).then(() => {
-      if (url.length <= 7000) {
-        showToast('Lista copiada. Escolha o contato ou grupo no WhatsApp.');
-        window.open(url, '_blank', 'noopener');
-      } else {
-        showToast('Lista copiada (é grande). Abra o WhatsApp e cole na conversa.');
-        window.open('https://wa.me/', '_blank', 'noopener');
-      }
+    const back = document.createElement('div');
+    back.className = 'modal-backdrop';
+    back.innerHTML = '<div class="modal-box" role="dialog" aria-label="Lista de confirmados e pagos">' +
+      '<h3>Lista de confirmados e pagos</h3>' +
+      '<textarea readonly></textarea>' +
+      '<div class="modal-actions">' +
+        '<button type="button" class="btn-secondary" data-act="close">Fechar</button>' +
+        '<button type="button" class="btn-rsvp" data-act="copy" style="padding:10px 22px">Copiar texto</button>' +
+      '</div></div>';
+    const ta = back.querySelector('textarea');
+    ta.value = text;
+    const close = () => back.remove();
+    back.addEventListener('click', (e) => { if (e.target === back) close(); });
+    back.querySelector('[data-act="close"]').addEventListener('click', close);
+    back.querySelector('[data-act="copy"]').addEventListener('click', (e) => {
+      const b = e.currentTarget;
+      copyToClipboard(text).then(() => {
+        b.textContent = 'Copiado!';
+        setTimeout(() => { b.textContent = 'Copiar texto'; }, 1800);
+      });
     });
+    document.addEventListener('keydown', function onKey(ev) { if (ev.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } });
+    document.body.appendChild(back);
+    ta.focus();
+    ta.select();
   }
 
   document.getElementById('btnExportXlsx').addEventListener('click', exportExcel);
