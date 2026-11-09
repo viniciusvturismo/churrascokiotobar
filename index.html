@@ -100,8 +100,10 @@
   body.is-admin:not(.cards) tbody td { padding: 6px 6px; }
   body.is-admin:not(.cards) thead th { padding: 10px 6px; }
   body.is-admin:not(.cards) .cell-text { min-width: 0; padding: 6px 5px; }
-  body.is-admin:not(.cards) .cell-text[data-field="family"] { width: 150px; }
-  body.is-admin:not(.cards) .cell-text[data-field="phone"] { width: 122px; min-width: 0; }
+  body.is-admin:not(.cards) .cell-text[data-field="family"] { width: 132px; }
+  body.is-admin:not(.cards) .cell-text.ages { width: 84px; }
+  body.cards #costsBody .cell-text, body.cards #costsBody .cell-num { width: 100%; }
+  body.is-admin:not(.cards) .cell-text[data-field="phone"] { width: 112px; min-width: 0; }
   body.is-admin:not(.cards) .cell-num { width: 46px; }
   body.is-admin:not(.cards) .cell-num.money { width: 72px; }
   body.is-admin:not(.cards) select.cat-select { width: 92px; padding: 5px 2px; }
@@ -328,8 +330,9 @@
   body.cards tbody td { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 0; border: 0; min-width: 0; }
   body.cards tbody td::before { content: attr(data-label); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
   body.cards tbody td[data-label=""]::before { display: none; }
-  body.cards tbody td[data-label="Família"] { grid-column: 1 / -1; font-size: 15.5px; font-weight: 700; }
-  body.cards tbody td[data-label="Família"]::before { display: none; }
+  body.cards tbody td[data-label="Família"], body.cards tbody td[data-label="Item"] { grid-column: 1 / -1; font-size: 15.5px; font-weight: 700; }
+  body.cards tbody td[data-label="Família"]::before, body.cards tbody td[data-label="Item"]::before { display: none; }
+  body.cards tbody td[data-label="Detalhe"] { grid-column: 1 / -1; }
   body.cards tbody td[data-label="Pagamento"] { grid-column: span 2; }
   body.cards.is-admin tbody td[data-label="Pagamento"] { grid-column: 1 / -1; }
   body.cards tbody td[data-label="Telefone"] { grid-column: 1 / -1; }
@@ -372,6 +375,20 @@
   .admin-link:hover { background: var(--surface-2); }
   .admin-email { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink-faint); }
 
+  .rsvp-ages { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-end; }
+  .rsvp-ages .ages-title { flex: 1 1 100%; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .rsvp-ages label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--ink-faint); }
+  .rsvp-ages input { width: 74px; font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); text-align: center; }
+  .rsvp-ages input:focus { outline: none; border-color: var(--accent); }
+  .cell-text.ages { margin-top: 4px; font-size: 12.5px; min-width: 0; }
+  .cell-text.ages.missing { border-color: var(--warn); }
+  .costs-panel { margin-top: 40px; }
+  .costs-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+  .costs-summary .tile .tile-val { font-size: 18px; }
+  .cost-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 6px; }
+  .cost-note.warn { color: var(--warn); }
+  #costsBody .cell-text[data-field="name"] { width: 150px; }
+  #costsBody .cell-text[data-field="note"] { width: 230px; }
   .report-bar { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
   .report-bar .btn-secondary { margin-top: 0; padding: 11px 18px; font-size: 13.5px; }
   .modal-backdrop { position: fixed; inset: 0; background: rgba(10, 20, 32, 0.55); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -446,6 +463,7 @@
         <label for="rsvpChildren">Crianças (até 15 anos)</label>
         <input type="number" id="rsvpChildren" name="rsvpChildren" min="0" value="0">
       </div>
+      <div class="rsvp-ages" id="rsvpAges" hidden></div>
       <button type="submit" class="btn-rsvp" id="rsvpSubmitBtn">Vou participar</button>
     </form>
     <div class="rsvp-success" id="rsvpSuccess" hidden></div>
@@ -562,6 +580,7 @@
   </div>
   <div class="report-bar admin-col">
     <button type="button" class="btn-secondary" id="btnExportXlsx">Exportar relatório (Excel)</button>
+    <button type="button" class="btn-secondary" id="btnGotoCosts">Custos do churrasco</button>
     <button type="button" class="btn-secondary" id="btnWaReport">Lista de confirmados e pagos (texto para copiar)</button>
   </div>
   <div class="admin-banner admin-col">Modo organizador ativo — você pode editar a lista, registrar o valor pago por pessoa e mover pessoas entre as listas.</div>
@@ -586,6 +605,7 @@
         <input type="tel" name="phone" placeholder="WhatsApp (DDD + número)" inputmode="numeric">
         <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
         <div class="num-field"><label>Crianças (até 15)</label><input type="number" name="children" min="0" value="0"></div>
+        <input type="text" name="ages" placeholder="Idades (ex: 4, 9)" style="flex:0 1 140px;min-width:110px">
         <button type="submit" class="btn-add">Adicionar</button>
       </form>
     </div>
@@ -611,8 +631,40 @@
         <input type="tel" name="phone" placeholder="WhatsApp (DDD + número)" inputmode="numeric">
         <div class="num-field"><label>Adultos</label><input type="number" name="adults" min="0" value="1"></div>
         <div class="num-field"><label>Crianças (até 15)</label><input type="number" name="children" min="0" value="0"></div>
+        <input type="text" name="ages" placeholder="Idades (ex: 4, 9)" style="flex:0 1 140px;min-width:110px">
         <button type="submit" class="btn-add">Adicionar</button>
       </form>
+    </div>
+  </div>
+
+  <div class="costs-panel admin-col" id="costsPanel">
+    <div class="list-head">
+      <div>
+        <h2>Custos do churrasco</h2>
+        <div class="sub">Planilha de custos: vá preenchendo as quantidades e os valores. O buffet calcula sozinho as pessoas acima de 6 anos.</div>
+      </div>
+      <div class="list-tally" id="costsTally"></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Item</th><th>Detalhe</th><th>Qtde</th><th>Valor unit. (R$)</th><th>Total (R$)</th><th>Pago (R$)</th><th></th></tr></thead>
+          <tbody id="costsBody"></tbody>
+        </table>
+      </div>
+      <form class="add-form" id="costAddForm">
+        <input type="text" name="name" placeholder="Novo item de custo (ex: Som, Decoração)" required>
+        <div class="num-field"><label>Qtde</label><input type="number" name="qty" min="0" step="any" value="1"></div>
+        <div class="num-field"><label>Valor unit.</label><input type="number" name="unit" min="0" step="any" value="0" style="width:84px"></div>
+        <button type="submit" class="btn-add">Adicionar item</button>
+      </form>
+    </div>
+    <div class="costs-summary">
+      <div class="tile"><div class="tile-label">Custo total</div><div class="tile-val" id="costTotal">R$ 0</div></div>
+      <div class="tile"><div class="tile-label">Custo pago</div><div class="tile-val" id="costPaid">R$ 0</div></div>
+      <div class="tile"><div class="tile-label">Custo a pagar</div><div class="tile-val" id="costDue">R$ 0</div></div>
+      <div class="tile"><div class="tile-label">Receita prevista</div><div class="tile-val" id="costRevenue">R$ 0</div></div>
+      <div class="tile"><div class="tile-label">Resultado previsto</div><div class="tile-val" id="costResult">R$ 0</div><div class="tile-sub" id="costResultSub"></div></div>
     </div>
   </div>
 
@@ -681,6 +733,12 @@
 
   function guestValue(g) { return g.adults * ADULT_PRICE + g.children * CHILD_PRICE; }
   function guestTotal(g) { return g.adults + g.children; }
+
+  const CHILD_MAX_AGE = 15;
+  const BUFFET_MIN_AGE = 7;
+  function parseAges(text) {
+    return String(text || '').split(/[^0-9]+/).filter(s => s !== '').map(Number).filter(n => Number.isFinite(n) && n >= 0 && n <= CHILD_MAX_AGE);
+  }
 
   function payInfo(g) {
     const value = guestValue(g);
@@ -754,6 +812,7 @@
 
 
     document.body.classList.toggle('is-admin', isAdmin);
+    if (typeof renderCosts === 'function') renderCosts();
     document.body.classList.toggle('cards', window.innerWidth <= (isAdmin ? 1080 : 820));
 
     const sums = { confirmed, waitlist };
@@ -805,7 +864,8 @@
           '<td data-label="Família"><input class="cell-text" data-field="family" value="' + escapeAttr(g.family) + '"' + dis + '></td>' +
           '<td class="admin-col" data-label="Telefone"><input class="cell-text" data-field="phone" value="' + escapeAttr(g.phone || '') + '" placeholder="DDD+número"' + dis + '></td>' +
           '<td data-label="Adultos"><input class="cell-num" type="number" min="0" data-field="adults" value="' + g.adults + '"' + dis + '></td>' +
-          '<td data-label="Crianças"><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '></td>' +
+          '<td data-label="Crianças"><input class="cell-num" type="number" min="0" data-field="children" value="' + g.children + '"' + dis + '>' +
+            '<input class="cell-text ages' + (g.children > 0 && (g.childrenAges || []).length < g.children ? ' missing' : '') + '" data-field="ages" value="' + escapeAttr((g.childrenAges || []).join(', ')) + '" placeholder="idades"' + dis + '></td>' +
           '<td class="cell-total mono" data-label="Total">' + total + '</td>' +
           '<td class="cell-value mono" data-label="Valor">' + fmtMoney(value) + '</td>' +
           '<td class="admin-col" data-label="Pago (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="paidAmount" value="' + pi.paid + '"' + dis + '></td>' +
@@ -838,6 +898,11 @@
       let value = e.target.value;
       if (field === 'adults' || field === 'children') value = Math.max(0, Number(value) || 0);
       if (field === 'phone') value = toWhatsAppPhone(value);
+      if (field === 'ages') {
+        const ages = parseAges(value);
+        safeWrite(() => updateDoc(doc(guestsCol, id), { childrenAges: ages }));
+        return;
+      }
       if (field === 'paidAmount') {
         value = Math.round(Math.max(0, Number(value) || 0) * 100) / 100;
         const gp = guests.find(x => x.id === id);
@@ -873,8 +938,9 @@
       const phone = toWhatsAppPhone(form.phone.value);
       const adults = Math.max(0, Number(form.adults.value) || 0);
       const children = Math.max(0, Number(form.children.value) || 0);
+      const childrenAges = parseAges(form.ages.value);
       if (!family || adults + children === 0) return;
-      safeWrite(() => addDoc(guestsCol, { family, phone, adults, children, confirmed: false, paidAmount: 0, category: cat, createdAt: Date.now() }));
+      safeWrite(() => addDoc(guestsCol, { family, phone, adults, children, childrenAges, confirmed: false, paidAmount: 0, category: cat, createdAt: Date.now() }));
       form.reset();
       form.adults.value = 1;
       form.children.value = 0;
@@ -912,6 +978,20 @@
     });
   });
 
+  const agesWrap = document.getElementById('rsvpAges');
+  function rebuildAgeFields() {
+    const n = Math.min(12, Math.max(0, Number(document.getElementById('rsvpChildren').value) || 0));
+    const old = [...agesWrap.querySelectorAll('input')].map(i => i.value);
+    if (n === 0) { agesWrap.hidden = true; agesWrap.innerHTML = ''; return; }
+    agesWrap.hidden = false;
+    let html = '<div class="ages-title">Idade de cada criança (até ' + CHILD_MAX_AGE + ' anos — a partir de 16 conta como adulto)</div>';
+    for (let i = 0; i < n; i++) {
+      html += '<label>Criança ' + (i + 1) + '<input type="number" min="0" max="' + CHILD_MAX_AGE + '" step="1" inputmode="numeric" placeholder="anos" required value="' + escapeAttr(old[i] || '') + '"></label>';
+    }
+    agesWrap.innerHTML = html;
+  }
+  document.getElementById('rsvpChildren').addEventListener('input', rebuildAgeFields);
+
   rsvpForm.addEventListener('submit', (e) => {
     e.preventDefault();
     document.getElementById('rsvpError').hidden = true;
@@ -921,12 +1001,24 @@
     const children = Math.max(0, Number(document.getElementById('rsvpChildren').value) || 0);
     if (!name || !phone) return;
 
+    const ageInputs = [...agesWrap.querySelectorAll('input')];
+    const childrenAges = ageInputs.map(i => i.value === '' ? NaN : Number(i.value));
+    const errEl0 = document.getElementById('rsvpError');
+    if (children > 0) {
+      if (childrenAges.length !== children || childrenAges.some(a => !Number.isInteger(a))) {
+        errEl0.hidden = false; errEl0.textContent = 'Informe a idade de cada criança (em anos).'; return;
+      }
+      if (childrenAges.some(a => a < 0 || a > CHILD_MAX_AGE)) {
+        errEl0.hidden = false; errEl0.textContent = 'Criança vai até ' + CHILD_MAX_AGE + ' anos. A partir de 16 anos conta como adulto: coloque no campo Adultos.'; return;
+      }
+    }
+
     const confirmed = sumCategory('confirmed');
     const newTotal = adults + children;
     const targetCat = (confirmed.total + newTotal <= CAPACITY) ? 'confirmed' : 'waitlist';
     const totalValue = adults * ADULT_PRICE + children * CHILD_PRICE;
 
-    safeWrite(() => addDoc(guestsCol, { family: name, phone, adults, children, confirmed: false, paidAmount: 0, category: targetCat, createdAt: Date.now() }))
+    safeWrite(() => addDoc(guestsCol, { family: name, phone, adults, children, childrenAges: children > 0 ? childrenAges : [], confirmed: false, paidAmount: 0, category: targetCat, createdAt: Date.now() }))
       .then(() => {
         const successEl = document.getElementById('rsvpSuccess');
         if (writesBlocked) {
@@ -973,6 +1065,7 @@
         rsvpForm.reset();
         document.getElementById('rsvpAdults').value = 1;
         document.getElementById('rsvpChildren').value = 0;
+        rebuildAgeFields();
       });
   });
 
@@ -1026,6 +1119,113 @@
     return new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
+
+  const costsCol = collection(db, "churrasco_kioto_bar_costs");
+  const DEFAULT_COSTS = [
+    { id: 'buffet', order: 1, name: 'Buffet', note: 'R$ 65 por pessoa acima de 6 anos', auto: true, qty: 0, unit: 65, paid: 0 },
+    { id: 'chopp', order: 2, name: 'Chopp', note: 'com choppeira', qty: 1, unit: 0, paid: 0 },
+    { id: 'bebidas', order: 3, name: 'Bebidas não alcoólicas', note: 'refrigerante, suco, água', qty: 1, unit: 0, paid: 0 },
+    { id: 'play', order: 4, name: 'Aluguel do Play', note: '', qty: 1, unit: 0, paid: 0 },
+    { id: 'brinquedos', order: 5, name: 'Brinquedos para a criançada', note: '', qty: 1, unit: 0, paid: 0 },
+    { id: 'recreador', order: 6, name: 'Recreador', note: '', qty: 1, unit: 0, paid: 0 }
+  ];
+  let costs = [];
+  let unsubCosts = null;
+  let costsSeeded = false;
+
+  function buffetCount() {
+    const rows = guests.filter(g => g.category === 'confirmed');
+    let qty = 0, missing = 0, kidsOver = 0;
+    rows.forEach(g => {
+      qty += g.adults;
+      const ages = g.childrenAges || [];
+      const known = ages.filter(a => a >= BUFFET_MIN_AGE).length;
+      kidsOver += known;
+      qty += known;
+      missing += Math.max(0, g.children - ages.length);
+    });
+    return { qty, missing, kidsOver };
+  }
+  function costQty(x) { return x.auto ? buffetCount().qty : (Number(x.qty) || 0); }
+  function costTotals() {
+    let total = 0, paid = 0;
+    costs.forEach(x => { total += costQty(x) * (Number(x.unit) || 0); paid += Number(x.paid) || 0; });
+    return { total, paid };
+  }
+
+  function renderCosts() {
+    const tbody = document.getElementById('costsBody');
+    if (!tbody || !isAdmin) return;
+    const dis = writesBlocked ? ' disabled' : '';
+    const bc = buffetCount();
+    const list = costs.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+    tbody.innerHTML = list.length === 0 ? '<tr class="empty-row"><td colspan="7">Carregando itens…</td></tr>' : list.map(x => {
+      const q = costQty(x);
+      const total = q * (Number(x.unit) || 0);
+      return '<tr data-id="' + x.id + '">' +
+        '<td data-label="Item"><input class="cell-text" data-field="name" value="' + escapeAttr(x.name || '') + '"' + dis + '></td>' +
+        '<td data-label="Detalhe"><input class="cell-text" data-field="note" value="' + escapeAttr(x.note || '') + '" placeholder="detalhe / observação"' + dis + '></td>' +
+        '<td data-label="Qtde">' + (x.auto ? '<span class="mono" title="Calculado: adultos + crianças acima de 6 anos confirmados">' + q + ' (auto)</span>' : '<input class="cell-num" type="number" min="0" step="any" data-field="qty" value="' + q + '"' + dis + '>') + '</td>' +
+        '<td data-label="Valor unit. (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="unit" value="' + (Number(x.unit) || 0) + '"' + dis + '></td>' +
+        '<td class="mono" data-label="Total (R$)">' + fmtMoney(total) + '</td>' +
+        '<td data-label="Pago (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="paid" value="' + (Number(x.paid) || 0) + '"' + dis + '></td>' +
+        '<td data-label="">' + (x.auto ? '' : '<button class="icon-btn" data-action="del-cost" title="Remover item" aria-label="Remover item"' + dis + '>×</button>') + '</td>' +
+      '</tr>';
+    }).join('');
+
+    const t = costTotals();
+    const conf = sumCategory('confirmed');
+    document.getElementById('costTotal').textContent = fmtMoney(t.total);
+    document.getElementById('costPaid').textContent = fmtMoney(t.paid);
+    document.getElementById('costDue').textContent = fmtMoney(Math.max(0, t.total - t.paid));
+    document.getElementById('costRevenue').textContent = fmtMoney(conf.value);
+    const res = conf.value - t.total;
+    document.getElementById('costResult').textContent = fmtMoney(res);
+    document.getElementById('costResultSub').textContent = res >= 0 ? 'sobra prevista' : 'falta cobrir';
+    document.getElementById('costsTally').innerHTML = 'Buffet: <b>' + bc.qty + '</b> pessoas (' + bc.kidsOver + ' crianças acima de 6)' +
+      (bc.missing > 0 ? ' · <span style="color:var(--warn)"><b>' + bc.missing + '</b> criança(s) sem idade</span>' : '');
+  }
+
+  document.getElementById('costsBody').addEventListener('change', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    const field = e.target.getAttribute('data-field');
+    if (!tr || !field) return;
+    let value = e.target.value;
+    if (field !== 'name' && field !== 'note') value = Math.max(0, Math.round((Number(value) || 0) * 100) / 100);
+    safeWrite(() => updateDoc(doc(costsCol, tr.getAttribute('data-id')), { [field]: value }));
+  });
+  document.getElementById('costsBody').addEventListener('click', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr || e.target.getAttribute('data-action') !== 'del-cost') return;
+    const x = costs.find(c => c.id === tr.getAttribute('data-id'));
+    if (!x || !confirm('Remover o item "' + x.name + '"?')) return;
+    safeWrite(() => deleteDoc(doc(costsCol, x.id)));
+  });
+  document.getElementById('costAddForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const name = f.name.value.trim();
+    if (!name) return;
+    const order = costs.reduce((m, c) => Math.max(m, c.order || 0), 0) + 1;
+    safeWrite(() => addDoc(costsCol, { name, note: '', qty: Math.max(0, Number(f.qty.value) || 0), unit: Math.max(0, Number(f.unit.value) || 0), paid: 0, order }));
+    f.reset();
+    f.qty.value = 1; f.unit.value = 0;
+  });
+  document.getElementById('btnGotoCosts').addEventListener('click', () => {
+    document.getElementById('costsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function startCosts() {
+    unsubCosts = onSnapshot(costsCol, (snap) => {
+      costs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (snap.empty && !snap.metadata.fromCache && !costsSeeded) {
+        costsSeeded = true;
+        DEFAULT_COSTS.forEach(({ id, ...rest }) => safeWrite(() => setDoc(doc(costsCol, id), rest)));
+      }
+      renderCosts();
+    }, (err) => { console.error(err); document.getElementById('costsTally').textContent = 'Sem permissão para custos — publique a regra do Firestore (coleção churrasco_kioto_bar_costs).'; });
+  }
+
   let unsubReceipts = null;
   function renderReceipts(docs) {
     const tbody = document.getElementById('receiptsBody');
@@ -1038,10 +1238,10 @@
     }
     tbody.innerHTML = docs.map((r) => {
       return '<tr data-id="' + r.id + '">' +
-        '<td>' + escapeAttr(r.family) + '</td>' +
-        '<td class="mono">' + fmtDateTime(r.uploadedAt) + '</td>' +
-        '<td><a class="receipt-link" href="' + r.fileUrl + '" target="_blank" rel="noopener">Ver comprovante</a></td>' +
-        '<td><button class="icon-btn" data-action="dismiss-receipt" title="Já conferi, remover da lista" aria-label="Dispensar">×</button></td>' +
+        '<td data-label="Família">' + escapeAttr(r.family) + '</td>' +
+        '<td class="mono" data-label="Enviado em">' + fmtDateTime(r.uploadedAt) + '</td>' +
+        '<td data-label="Arquivo"><a class="receipt-link" href="' + r.fileUrl + '" target="_blank" rel="noopener">Ver comprovante</a></td>' +
+        '<td data-label=""><button class="icon-btn" data-action="dismiss-receipt" title="Já conferi, remover da lista" aria-label="Dispensar">×</button></td>' +
       '</tr>';
     }).join('');
   }
@@ -1061,6 +1261,7 @@
         phone: typeof data.phone === 'string' ? data.phone : '',
         adults: typeof data.adults === 'number' ? data.adults : 0,
         children: typeof data.children === 'number' ? data.children : 0,
+        childrenAges: Array.isArray(data.childrenAges) ? data.childrenAges.filter(n => typeof n === 'number') : [],
         confirmed: !!data.confirmed,
         paidAmount: typeof data.paidAmount === 'number' ? data.paidAmount : null,
         category: CATS.includes(data.category) ? data.category : (LEGACY_CAT[data.category] || 'confirmed'),
@@ -1106,6 +1307,8 @@
       unsubReceipts();
       unsubReceipts = null;
     }
+    if (isAdmin && !unsubCosts) startCosts();
+    else if (!isAdmin && unsubCosts) { unsubCosts(); unsubCosts = null; costs = []; }
 
     render();
   });
@@ -1148,23 +1351,23 @@
 
   function guestRowForReport(g) {
     const pi = payInfo(g);
-    return [g.family, g.phone || '', g.adults, g.children, guestTotal(g), pi.value, pi.paid, pi.remaining, PAY_LABEL[pi.status]];
+    return [g.family, g.phone || '', g.adults, g.children, (g.childrenAges || []).join(', '), guestTotal(g), pi.value, pi.paid, pi.remaining, PAY_LABEL[pi.status]];
   }
 
   async function exportExcel() {
     let XLSX;
     try { XLSX = await loadXlsx(); } catch (e) { showToast('Não foi possível carregar o gerador de Excel. Verifique a internet e tente de novo.'); return; }
-    const head = ['Família / Convidado', 'Telefone', 'Adultos', 'Crianças (até 15)', 'Total de pessoas', 'Valor devido (R$)', 'Valor pago (R$)', 'Falta pagar (R$)', 'Status'];
+    const head = ['Família / Convidado', 'Telefone', 'Adultos', 'Crianças (até 15)', 'Idades das crianças', 'Total de pessoas', 'Valor devido (R$)', 'Valor pago (R$)', 'Falta pagar (R$)', 'Status'];
     const money = '"R$" #,##0.00';
     const makeSheet = (cat) => {
       const rows = listOf(cat).map(guestRowForReport);
       const sum = sumCategory(cat);
-      const aoa = [head].concat(rows, [['TOTAL', '', sum.adults, sum.children, sum.total, sum.value, sum.paid, sum.remaining, '']]);
+      const aoa = [head].concat(rows, [['TOTAL', '', sum.adults, sum.children, '', sum.total, sum.value, sum.paid, sum.remaining, '']]);
       const ws = XLSX.utils.aoa_to_sheet(aoa);
       for (let r = 1; r <= rows.length + 1; r++) {
-        [5, 6, 7].forEach(c => { const cell = ws[XLSX.utils.encode_cell({ r, c })]; if (cell) cell.z = money; });
+        [6, 7, 8].forEach(c => { const cell = ws[XLSX.utils.encode_cell({ r, c })]; if (cell) cell.z = money; });
       }
-      ws['!cols'] = [{ wch: 30 }, { wch: 16 }, { wch: 9 }, { wch: 16 }, { wch: 16 }, { wch: 17 }, { wch: 16 }, { wch: 16 }, { wch: 22 }];
+      ws['!cols'] = [{ wch: 30 }, { wch: 16 }, { wch: 9 }, { wch: 16 }, { wch: 20 }, { wch: 16 }, { wch: 17 }, { wch: 16 }, { wch: 16 }, { wch: 22 }];
       return ws;
     };
     const c = sumCategory('confirmed');
@@ -1183,15 +1386,28 @@
       ['Quitados', c.paidCount],
       ['Pagamento parcial', c.partialCount],
       ['Famílias na espera', w.count],
-      ['Pessoas na espera', w.total]
+      ['Pessoas na espera', w.total],
+      [],
+      ['Custo total (R$)', costTotals().total],
+      ['Custo pago (R$)', costTotals().paid],
+      ['Resultado previsto (R$)', c.value - costTotals().total]
     ];
     const wsR = XLSX.utils.aoa_to_sheet(resumo);
-    [7, 8, 9].forEach(r => { const cell = wsR[XLSX.utils.encode_cell({ r, c: 1 })]; if (cell) cell.z = money; });
+    [7, 8, 9, 15, 16, 17].forEach(r => { const cell = wsR[XLSX.utils.encode_cell({ r, c: 1 })]; if (cell) cell.z = money; });
     wsR['!cols'] = [{ wch: 28 }, { wch: 22 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsR, 'Resumo');
     XLSX.utils.book_append_sheet(wb, makeSheet('confirmed'), 'Confirmados');
     XLSX.utils.book_append_sheet(wb, makeSheet('waitlist'), 'Espera');
+    const costRows = costs.slice().sort((a, b) => (a.order || 0) - (b.order || 0)).map(x => {
+      const q = costQty(x);
+      return [x.name, x.note || '', q, x.unit || 0, q * (x.unit || 0), x.paid || 0, Math.max(0, q * (x.unit || 0) - (x.paid || 0))];
+    });
+    const ct = costTotals();
+    const wsC = XLSX.utils.aoa_to_sheet([['Item', 'Detalhe', 'Qtde', 'Valor unitário (R$)', 'Total (R$)', 'Pago (R$)', 'A pagar (R$)']].concat(costRows, [['TOTAL', '', '', '', ct.total, ct.paid, Math.max(0, ct.total - ct.paid)]]));
+    for (let r = 1; r <= costRows.length + 1; r++) [3, 4, 5, 6].forEach(c => { const cell = wsC[XLSX.utils.encode_cell({ r, c })]; if (cell) cell.z = money; });
+    wsC['!cols'] = [{ wch: 28 }, { wch: 42 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, wsC, 'Custos');
     XLSX.writeFile(wb, 'churrasco-kioto-bar-relatorio-' + new Date().toISOString().slice(0, 10) + '.xlsx');
     showToast('Relatório Excel gerado.');
   }
