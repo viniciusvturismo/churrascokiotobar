@@ -187,6 +187,14 @@
   .rsvp-success { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: var(--good-tint); color: var(--good); font-size: 14px; font-weight: 600; }
   .rsvp-error { margin-top: 14px; padding: 12px 15px; border-radius: 10px; background: var(--warn-tint); color: var(--warn); font-size: 13.5px; }
 
+  .local-card { margin-top: 24px; padding: 22px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); }
+  .local-card .panel-label { margin-bottom: 10px; }
+  .local-addr { font-size: 15px; font-weight: 600; }
+  .local-addr small { display: block; font-weight: 400; font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .local-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+  .local-actions a { text-decoration: none; display: inline-block; padding: 10px 18px; border-radius: 9px; font-weight: 700; font-size: 13.5px; background: var(--secondary-tint); color: var(--secondary); border: 1px solid var(--line-strong); }
+  .local-actions a:hover { filter: brightness(0.96); }
+  .local-map { width: 100%; height: 280px; border: 1px solid var(--line); border-radius: 12px; display: block; background: var(--surface-2); }
   .pix-card { margin-top: 24px; padding: 22px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px var(--shadow); }
   .pix-card .panel-label { margin-bottom: 10px; }
   .pix-card .pix-body { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
@@ -403,7 +411,7 @@
     <div class="meta">
       <span>21 de novembro de 2026</span>
       <span class="dot">·</span>
-      <span>Prédio do Fabio Cursino · Rua dos Artistas, 212</span>
+      <span>Prédio do Fabio Cursino · Rua dos Artistas, 212 · Tijuca/Maracanã, Rio de Janeiro</span>
       <span class="dot">·</span>
       <span>80 lugares</span>
     </div>
@@ -442,6 +450,18 @@
     </form>
     <div class="rsvp-success" id="rsvpSuccess" hidden></div>
     <div class="rsvp-error" id="rsvpError" hidden></div>
+  </div>
+
+  <div class="local-card">
+    <div class="panel-label">Local do churrasco</div>
+    <div class="local-addr">Rua dos Artistas, 212
+      <small>Tijuca / Maracanã · Rio de Janeiro, RJ · Prédio do Fabio Cursino</small>
+    </div>
+    <div class="local-actions">
+      <a href="https://waze.com/ul?q=Rua%20dos%20Artistas%20212%20Tijuca%20Rio%20de%20Janeiro&navigate=yes" target="_blank" rel="noopener">Abrir no Waze</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=Rua+dos+Artistas,+212,+Tijuca,+Rio+de+Janeiro,+RJ" target="_blank" rel="noopener">Abrir no Google Maps</a>
+    </div>
+    <iframe class="local-map" title="Mapa do local do churrasco" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Rua+dos+Artistas,+212,+Tijuca,+Rio+de+Janeiro,+RJ&output=embed"></iframe>
   </div>
 
   <div class="ticket-row">
@@ -597,7 +617,7 @@
   </div>
 
   <footer class="page-footer">
-    <span>Churrasco de Final de Ano · Rua dos Artistas, 212 · 21 nov 2026</span>
+    <span>Churrasco de Final de Ano · Rua dos Artistas, 212 · Tijuca, Rio de Janeiro · 21 nov 2026</span>
     <span class="sync-note"><i class="sync-dot" id="syncDot"></i><span id="syncLabel">conectando…</span></span>
     <span class="admin-bar">
       <span class="admin-email" id="adminEmail" hidden></span>
@@ -1227,7 +1247,7 @@
   (function setupCalendarLinks() {
     const TITLE = 'Churrasco de Final de Ano — Kioto Bar';
     const DETAILS = 'Reunir os amigos mais próximos e suas famílias para celebrar o ano e a amizade. Buffet de churrasco, chopp, bebidas não alcoólicas e estrutura para as crianças.';
-    const LOCATION = 'Rua dos Artistas, 212 - Prédio do Fabio Cursino';
+    const LOCATION = 'Rua dos Artistas, 212 - Tijuca, Rio de Janeiro - RJ (Prédio do Fabio Cursino)';
     // 21/11/2026, 12:00–17:00 horário de Brasília (UTC-3) = 15:00–20:00 UTC
     const START_UTC = '20261121T150000Z';
     const END_UTC = '20261121T200000Z';
