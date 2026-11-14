@@ -641,7 +641,7 @@
     <div class="list-head">
       <div>
         <h2>Custos do churrasco</h2>
-        <div class="sub">Planilha de custos: vá preenchendo as quantidades e os valores. O buffet calcula sozinho as pessoas acima de 6 anos.</div>
+        <div class="sub">Planilha de custos: vá preenchendo as quantidades e os valores. O buffet calcula sozinho pelo total de convidados confirmados.</div>
       </div>
       <div class="list-tally" id="costsTally"></div>
     </div>
@@ -735,7 +735,6 @@
   function guestTotal(g) { return g.adults + g.children; }
 
   const CHILD_MAX_AGE = 15;
-  const BUFFET_MIN_AGE = 7;
   function parseAges(text) {
     return String(text || '').split(/[^0-9]+/).filter(s => s !== '').map(Number).filter(n => Number.isFinite(n) && n >= 0 && n <= CHILD_MAX_AGE);
   }
@@ -1121,8 +1120,9 @@
 
 
   const costsCol = collection(db, "churrasco_kioto_bar_costs");
+  const BUFFET_NOTE = 'R$ 65 por convidado (adultos + crianças)';
   const DEFAULT_COSTS = [
-    { id: 'buffet', order: 1, name: 'Buffet', note: 'R$ 65 por pessoa acima de 6 anos', auto: true, qty: 0, unit: 65, paid: 0 },
+    { id: 'buffet', order: 1, name: 'Buffet', note: BUFFET_NOTE, auto: true, qty: 0, unit: 65, paid: 0 },
     { id: 'chopp', order: 2, name: 'Chopp', note: 'com choppeira', qty: 1, unit: 0, paid: 0 },
     { id: 'bebidas', order: 3, name: 'Bebidas não alcoólicas', note: 'refrigerante, suco, água', qty: 1, unit: 0, paid: 0 },
     { id: 'play', order: 4, name: 'Aluguel do Play', note: '', qty: 1, unit: 0, paid: 0 },
@@ -1134,17 +1134,7 @@
   let costsSeeded = false;
 
   function buffetCount() {
-    const rows = guests.filter(g => g.category === 'confirmed');
-    let qty = 0, missing = 0, kidsOver = 0;
-    rows.forEach(g => {
-      qty += g.adults;
-      const ages = g.childrenAges || [];
-      const known = ages.filter(a => a >= BUFFET_MIN_AGE).length;
-      kidsOver += known;
-      qty += known;
-      missing += Math.max(0, g.children - ages.length);
-    });
-    return { qty, missing, kidsOver };
+    return { qty: guests.filter(g => g.category === 'confirmed').reduce((n, g) => n + g.adults + g.children, 0) };
   }
   function costQty(x) { return x.auto ? buffetCount().qty : (Number(x.qty) || 0); }
   function costTotals() {
@@ -1164,8 +1154,8 @@
       const total = q * (Number(x.unit) || 0);
       return '<tr data-id="' + x.id + '">' +
         '<td data-label="Item"><input class="cell-text" data-field="name" value="' + escapeAttr(x.name || '') + '"' + dis + '></td>' +
-        '<td data-label="Detalhe"><input class="cell-text" data-field="note" value="' + escapeAttr(x.note || '') + '" placeholder="detalhe / observação"' + dis + '></td>' +
-        '<td data-label="Qtde">' + (x.auto ? '<span class="mono" title="Calculado: adultos + crianças acima de 6 anos confirmados">' + q + ' (auto)</span>' : '<input class="cell-num" type="number" min="0" step="any" data-field="qty" value="' + q + '"' + dis + '>') + '</td>' +
+        '<td data-label="Detalhe">' + (x.auto ? '<span style="font-size:13px;color:var(--ink-soft)">' + BUFFET_NOTE + '</span>' : '<input class="cell-text" data-field="note" value="' + escapeAttr(x.note || '') + '" placeholder="detalhe / observação"' + dis + '>') + '</td>' +
+        '<td data-label="Qtde">' + (x.auto ? '<span class="mono" title="Calculado: total de convidados confirmados (adultos + crianças)">' + q + ' (auto)</span>' : '<input class="cell-num" type="number" min="0" step="any" data-field="qty" value="' + q + '"' + dis + '>') + '</td>' +
         '<td data-label="Valor unit. (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="unit" value="' + (Number(x.unit) || 0) + '"' + dis + '></td>' +
         '<td class="mono" data-label="Total (R$)">' + fmtMoney(total) + '</td>' +
         '<td data-label="Pago (R$)"><input class="cell-num money" type="number" min="0" step="any" data-field="paid" value="' + (Number(x.paid) || 0) + '"' + dis + '></td>' +
@@ -1182,8 +1172,7 @@
     const res = conf.value - t.total;
     document.getElementById('costResult').textContent = fmtMoney(res);
     document.getElementById('costResultSub').textContent = res >= 0 ? 'sobra prevista' : 'falta cobrir';
-    document.getElementById('costsTally').innerHTML = 'Buffet: <b>' + bc.qty + '</b> pessoas (' + bc.kidsOver + ' crianças acima de 6)' +
-      (bc.missing > 0 ? ' · <span style="color:var(--warn)"><b>' + bc.missing + '</b> criança(s) sem idade</span>' : '');
+    document.getElementById('costsTally').innerHTML = 'Buffet: <b>' + bc.qty + '</b> convidados confirmados';
   }
 
   document.getElementById('costsBody').addEventListener('change', (e) => {
